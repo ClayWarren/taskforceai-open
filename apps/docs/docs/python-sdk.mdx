@@ -1,0 +1,65 @@
+---
+title: 'Python SDK'
+description: 'Async-first Python client for TaskForceAI'
+---
+
+The TaskForceAI Python SDK supports both sync and async workflows with full type hinting and mock-mode support.
+
+The package README is the canonical reference for the complete client surface, response hooks, streaming helpers, and development workflow. This page keeps only the shortest path to first use.
+
+## Canonical Reference
+
+- Package README: [packages/sdk-python/README.md](https://github.com/TaskForceAI/taskforceai/blob/main/packages/sdk-python/README.md)
+- REST API reference: [/docs/api](/docs/api)
+
+## Installation
+
+```bash
+python -m pip install taskforceai
+```
+
+## Quick Start
+
+```python
+from taskforceai import TaskForceAIClient
+
+client = TaskForceAIClient(api_key="your-api-key")
+result = client.run_task("Summarize the latest updates")
+print(result["result"])
+```
+
+## Async Usage
+
+```python
+import asyncio
+from taskforceai import AsyncTaskForceAIClient
+
+async def main():
+    async with AsyncTaskForceAIClient(api_key="your-api-key") as client:
+        result = await client.run_task("Map open security issues")
+        print(result["result"])
+
+asyncio.run(main())
+```
+
+## Streaming
+
+```python
+from taskforceai import TaskForceAIClient
+
+client = TaskForceAIClient(api_key="your-api-key")
+stream = client.run_task_stream("Analyze this codebase")
+
+for status in stream:
+    print(f"{status['status']}: {status.get('result')}")
+```
+
+## Files and Threads
+
+```python
+from taskforceai import CreateThreadOptions, ThreadRunOptions
+
+uploaded = client.upload_file("brief.txt", b"Context for the run")
+thread = client.create_thread(CreateThreadOptions(title="Security review"))
+client.run_in_thread(thread.id, ThreadRunOptions(prompt="Review the uploaded brief"))
+```

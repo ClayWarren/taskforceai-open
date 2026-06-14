@@ -1,0 +1,58 @@
+@import '@fontsource-variable/inter/index.css';
+@plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
+
+@source './**/*.{js,ts,jsx,tsx}';
+@source '../lib/**/*.{js,ts,jsx,tsx}';
+@source '../config/**/*.{js,ts,jsx,tsx}';
+@source '../../packages/shared-ts/src/**/*.{js,ts,jsx,tsx}';
+@source '../../mobile/App.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+@import 'tailwindcss';
+
+/* Global cursor overrides */
+a,
+button,
+[role='button'],
+[type='button'],
+[type='submit'],
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+@import '../../../packages/design-tokens/css/app-globals-shared.css';
+
+/* Marketing-specific layout overrides (shared base in app-globals-shared.css) */
+.changelog-container {
+  height: auto;
+  min-height: 0;
+  flex: 1;
+  overflow: visible;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .changelog-container {
+    padding: 0;
+    height: auto;
+  }
+}
+
+.changelog-panel {
+  flex: 1;
+  height: auto;
+  min-height: 400px;
+}
+
+.changelog-panel__body {
+  flex: none;
+  overflow: visible;
+}
+
+.changelog-panel__timeline {
+  position: static;
+  overflow: visible;
+  padding-right: 0;
+}

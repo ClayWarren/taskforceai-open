@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["bun-types", "bun-types/test", "@testing-library/jest-dom", "vite/client"],
+    "paths": {
+      "@/*": ["./app/*"],
+      "#tests/*": ["../../tests/*"],
+      "@taskforceai/shared/preferences/theme-storage": [
+        "../../packages/shared-ts/src/preferences/theme-storage.ts"
+      ]
+    },
+    "plugins": []
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "vite-env.d.ts", "../../types/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

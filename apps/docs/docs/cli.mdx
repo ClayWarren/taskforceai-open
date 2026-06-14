@@ -1,0 +1,82 @@
+---
+title: 'CLI'
+description: 'Manage TaskForceAI from your terminal'
+---
+
+The TaskForceAI CLI provides a terminal-first interface for prompts, streaming runs, local history, and mock-server workflows.
+
+The repository README for the CLI is the canonical reference for controls, slash commands, local persistence, telemetry, MCP support, and development workflow. This page keeps only the shortest route to install and first use.
+
+## Canonical Reference
+
+- CLI README: [apps/tui/README.md](https://github.com/TaskForceAI/taskforceai/blob/main/apps/tui/README.md)
+- REST API reference: [/docs/api](/docs/api)
+
+## Installation
+
+The CLI works on macOS, Linux, and Windows.
+
+<Tabs>
+  <Tab title="macOS, Linux, WSL">
+    <pre>
+      <code>{`curl -fsSL https://taskforceai.chat/install.sh | bash`}</code>
+    </pre>
+  </Tab>
+  <Tab title="Homebrew">
+    <pre>
+      <code>{`brew install ClayWarren/taskforceai/taskforceai-cli`}</code>
+    </pre>
+  </Tab>
+  <Tab title="Windows PowerShell">
+    <pre>
+      <code>{`irm https://taskforceai.chat/install.ps1 | iex`}</code>
+    </pre>
+  </Tab>
+  <Tab title="Windows CMD">
+    <pre>
+      <code>{`curl -fsSL https://taskforceai.chat/install.cmd -o install.cmd
+install.cmd
+del install.cmd`}</code>
+    </pre>
+  </Tab>
+</Tabs>
+
+## Quick Start
+
+Launch the interactive TUI:
+
+```bash
+taskforceai
+```
+
+Run a single prompt:
+
+```bash
+taskforceai --prompt "Explain quantum computing" --output-format text
+```
+
+Run headless Agent Teams, Computer Use, image, or video prompts through the shared app-server runtime:
+
+```bash
+taskforceai --prompt "research today's AI news" --agent-teams --agent-count 4 --output-format streaming-json
+taskforceai --prompt "take one screenshot and describe it" --computer-use --output-format streaming-json
+taskforceai --prompt "create an image of a launch control room" --output-format streaming-json
+taskforceai --prompt "generate a two second video of a red circle moving left to right" --output-format streaming-json
+```
+
+## Mock Server
+
+To build and test SDKs locally without an API key, start the mock server:
+
+```bash
+taskforceai --mock
+```
+
+The server will run at `http://localhost:4321/api/v1/developer`.
+
+## Updates
+
+```bash
+taskforceai update check
+taskforceai update
+```

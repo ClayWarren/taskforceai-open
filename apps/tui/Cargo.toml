@@ -1,0 +1,31 @@
+[package]
+name = "taskforceai-tui"
+version = "0.11.3"
+edition = "2021"
+description = "TaskForceAI Rust terminal UI"
+authors = ["TaskForceAI"]
+license = "Proprietary"
+repository = "https://github.com/TaskForceAI"
+rust-version = "1.96.0"
+publish = false
+
+[dependencies]
+clap = {version = "4.6.1", features = ["derive"]}
+crossterm = {version = "0.29.0", features = ["event-stream"]}
+flate2 = "1.0"
+futures-util = "0.3"
+ratatui = "0.30.0-alpha.5"
+reqwest = {version = "0.12", default-features = false, features = ["json", "rustls-tls"]}
+semver = "1.0"
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
+sha2 = "0.10"
+tar = "0.4"
+taskforceai-app-client = {path = "../../packages/app-client-rs"}
+taskforceai-app-protocol = {path = "../../packages/app-protocol-rs"}
+tempfile = "3.23"
+thiserror = "1.0"
+tokio = {version = "1.0", features = ["macros", "rt-multi-thread", "signal", "time"]}
+tracing = "0.1"
+tracing-subscriber = {version = "0.3", features = ["env-filter", "fmt"]}
+zip = {version = "2.2", default-features = false, features = ["deflate"]}

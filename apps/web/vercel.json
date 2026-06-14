@@ -1,0 +1,155 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "~/.bun/bin/bun run build:vercel",
+  "installCommand": "cd ../.. && curl -fsSL https://bun.sh/install | bash -s \"bun-v1.3.14\" && ~/.bun/bin/bun install --no-save",
+  "framework": null,
+  "redirects": [
+    {
+      "source": "/auth/logout",
+      "destination": "https://auth.taskforceai.chat/api/v1/auth/logout",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/home",
+      "destination": "https://marketing.taskforceai.chat/home"
+    },
+    {
+      "source": "/benchmarks",
+      "destination": "https://marketing.taskforceai.chat/benchmarks"
+    },
+    {
+      "source": "/pricing",
+      "destination": "https://marketing.taskforceai.chat/pricing"
+    },
+    {
+      "source": "/enterprise",
+      "destination": "https://marketing.taskforceai.chat/enterprise"
+    },
+    {
+      "source": "/about",
+      "destination": "https://marketing.taskforceai.chat/about"
+    },
+    {
+      "source": "/downloads",
+      "destination": "https://marketing.taskforceai.chat/downloads"
+    },
+    {
+      "source": "/mobile",
+      "destination": "https://marketing.taskforceai.chat/mobile"
+    },
+    {
+      "source": "/sdk",
+      "destination": "https://marketing.taskforceai.chat/sdk"
+    },
+    {
+      "source": "/blog",
+      "destination": "https://marketing.taskforceai.chat/blog"
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "https://marketing.taskforceai.chat/blog/:path*"
+    },
+    {
+      "source": "/changelog",
+      "destination": "https://marketing.taskforceai.chat/changelog"
+    },
+    {
+      "source": "/changelog/:path*",
+      "destination": "https://marketing.taskforceai.chat/changelog/:path*"
+    },
+    {
+      "source": "/help",
+      "destination": "https://marketing.taskforceai.chat/help"
+    },
+    {
+      "source": "/help/:path*",
+      "destination": "https://marketing.taskforceai.chat/help/:path*"
+    },
+    {
+      "source": "/icon-48.webp",
+      "destination": "https://marketing.taskforceai.chat/icon-48.webp"
+    },
+    {
+      "source": "/api-docs",
+      "destination": "https://docs.taskforceai.chat/api-docs"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://docs.taskforceai.chat/docs"
+    },
+    {
+      "source": "/docs/:path*",
+      "destination": "https://docs.taskforceai.chat/docs/:path*"
+    },
+    {
+      "source": "/api/auth/(.*)",
+      "destination": "https://auth.taskforceai.chat/api/auth/$1"
+    },
+    {
+      "source": "/api/v1/auth/(.*)",
+      "destination": "https://auth.taskforceai.chat/api/v1/auth/$1"
+    },
+    {
+      "source": "/api/v1/sync/(.*)",
+      "destination": "https://sync.taskforceai.chat/api/v1/sync/$1"
+    },
+    {
+      "source": "/api/v1/payments/(.*)",
+      "destination": "https://billing.taskforceai.chat/api/v1/payments/$1"
+    },
+    {
+      "source": "/api/v1/checkout/(.*)",
+      "destination": "https://billing.taskforceai.chat/api/v1/checkout/$1"
+    },
+    {
+      "source": "/api/v1/run",
+      "destination": "https://engine.taskforceai.chat/api/v1/run"
+    },
+    {
+      "source": "/api/v1/run/(.*)",
+      "destination": "https://engine.taskforceai.chat/api/v1/run/$1"
+    },
+    {
+      "source": "/api/v1/integrations/(.*)",
+      "destination": "https://engine.taskforceai.chat/api/v1/integrations/$1"
+    },
+    {
+      "source": "/api/v1/stream/(.*)",
+      "destination": "https://engine.taskforceai.chat/api/v1/stream/$1"
+    },
+    {
+      "source": "/api/v1/tasks/active",
+      "destination": "https://engine.taskforceai.chat/api/v1/tasks/active"
+    },
+    {
+      "source": "/api/v1/tasks/(.*)/cancel",
+      "destination": "https://engine.taskforceai.chat/api/v1/tasks/$1/cancel"
+    },
+    {
+      "source": "/api/v1/tasks/(.*)/trace",
+      "destination": "https://engine.taskforceai.chat/api/v1/tasks/$1/trace"
+    },
+    {
+      "source": "/api/v1/tasks/(.*)/approve",
+      "destination": "https://engine.taskforceai.chat/api/v1/tasks/$1/approve"
+    },
+    {
+      "source": "/api/v1/developer/(.*)",
+      "destination": "https://developer.taskforceai.chat/api/v1/developer/$1"
+    },
+    {
+      "source": "/api/download/(.*)",
+      "destination": "https://api.taskforceai.chat/api/download/$1"
+    },
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "https://api.taskforceai.chat/api/v1/$1"
+    },
+    {
+      "source": "/videos/(.*)",
+      "destination": "https://marketing.taskforceai.chat/videos/$1"
+    }
+  ]
+}

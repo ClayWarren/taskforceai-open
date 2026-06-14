@@ -1,0 +1,61 @@
+---
+title: 'Go SDK'
+description: 'Idiomatic Go client for TaskForceAI'
+---
+
+The TaskForceAI Go SDK provides a robust, idiomatic way to integrate multi-agent workflows into your Go applications.
+
+The package README is the canonical reference for constructor options, status polling, streaming, mock mode, and release-specific usage details. This page is intentionally limited to install plus a minimal example.
+
+## Canonical Reference
+
+- Package README: [packages/sdk-go/README.md](https://github.com/TaskForceAI/taskforceai/blob/main/packages/sdk-go/README.md)
+- REST API reference: [/docs/api](/docs/api)
+
+## Installation
+
+```bash
+go get github.com/ClayWarren/taskforceai-open/packages/sdk-go
+```
+
+## Quick Start
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/ClayWarren/taskforceai-open/packages/sdk-go"
+)
+
+func main() {
+	client, err := taskforceai.NewClient(taskforceai.TaskForceAIOptions{
+		APIKey: "your-api-key-here",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	status, err := client.RunTask(context.Background(), "Analyze this repository", nil, 0, 0, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if status.Result != nil {
+		fmt.Printf("Result: %s\n", *status.Result)
+	}
+}
+```
+
+## Streaming
+
+```go
+stream, err := client.RunTaskStream(context.Background(), "Summarize this article", nil)
+if err != nil {
+	log.Fatal(err)
+}
+defer stream.Close()
+```

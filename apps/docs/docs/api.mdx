@@ -1,0 +1,91 @@
+---
+title: 'API Overview'
+description: 'Complete REST API reference for TaskForceAI'
+---
+
+The TaskForceAI Developer API allows you to orchestrate multi-agent workflows programmatically. API keys, model access, and usage are managed in the [TaskForceAI Console](https://console.taskforceai.chat).
+
+## Authentication
+
+All Developer API requests require an `x-api-key` header.
+
+```bash
+x-api-key: your-api-key-here
+```
+
+## Base URL
+
+Developer API requests use this base URL:
+
+```http
+https://taskforceai.chat/api/v1/developer
+```
+
+## Core Endpoints
+
+### Submit a Task
+
+Submit a prompt for multi-agent orchestration.
+
+<CodeGroup>
+```bash Request
+curl -X POST https://taskforceai.chat/api/v1/developer/run \
+  -H "x-api-key: <your_api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Analyze the security posture of this repository.",
+    "modelId": "moonshotai/kimi-k2.6",
+    "options": { "agentCount": 4 }
+  }'
+```
+
+```json Response
+{
+  "taskId": "task_abc123",
+  "message": "Task submitted successfully"
+}
+```
+
+</CodeGroup>
+
+### Get Task Status
+
+Check the status of a specific task.
+
+```http
+GET /status/{taskId}
+```
+
+### Get Task Results
+
+Once a task is `completed`, retrieve the final output.
+
+```http
+GET /results/{taskId}
+```
+
+## Files and Threads
+
+Upload files for task context, list uploaded files, download generated artifacts, and work with persistent conversation threads.
+
+```http
+GET /files
+POST /files
+GET /files/{fileId}/content
+GET /threads
+POST /threads
+POST /threads/{threadId}/runs
+```
+
+## Models and Usage
+
+Retrieve available AI models and their capabilities.
+
+```http
+GET https://taskforceai.chat/api/v1/models
+GET /usage
+```
+
+## OpenAPI
+
+The public OpenAPI spec is served from the docs app at `/openapi.yaml` during docs builds.

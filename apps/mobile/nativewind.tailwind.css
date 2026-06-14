@@ -1,0 +1,11 @@
+@config "./nativewind.config.js";
+
+@source "./App.{js,jsx,ts,tsx}";
+@source "./app/**/*.{js,jsx,ts,tsx}";
+@source "./src/**/*.{js,jsx,ts,tsx}";
+
+/* @nativewind-theme */
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';

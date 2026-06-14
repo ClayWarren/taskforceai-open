@@ -1,0 +1,38 @@
+---
+title: 'Desktop App'
+description: 'Native TaskForceAI experience for your desktop'
+---
+
+The TaskForceAI Desktop application provides the native TaskForceAI experience through a thin Tauri shell around the shared web UI and Rust app-server runtime.
+
+This page is intentionally short. Platform-specific install details belong to the download pages and the macOS Homebrew guide, while repository implementation details live in the desktop architecture notes inside the repo.
+
+## Canonical References
+
+- macOS install via Homebrew: [/docs/desktop/homebrew](/docs/desktop/homebrew)
+- Desktop implementation notes: [apps/desktop/ARCHITECTURE.md](https://github.com/TaskForceAI/taskforceai/blob/main/apps/desktop/ARCHITECTURE.md)
+- Release/download entry point: [taskforceai.chat/downloads](https://taskforceai.chat/downloads)
+
+## Installation
+
+<Tabs>
+  <Tab title="macOS">
+    <pre>
+      <code>{`brew install --cask taskforceai`}</code>
+    </pre>
+  </Tab>
+  <Tab title="Windows">
+    Download the `.exe` installer from our [downloads page](https://taskforceai.chat/downloads).
+  </Tab>
+  <Tab title="Linux">
+    Universal `.AppImage` or `.deb` packages are available on our [downloads
+    page](https://taskforceai.chat/downloads).
+  </Tab>
+</Tabs>
+
+## Features
+
+- **Shared Runtime**: Desktop uses the same app-server boundary as other local clients.
+- **Local Persistence**: Conversations, queued prompts, sync metadata, and model settings live behind the app-server.
+- **Native Capabilities**: Terminal reveal, MCP process control, voice, observability, and locked Computer Use are exposed by desktop-specific Rust.
+- **Cross-Platform Packaging**: macOS, Windows, and Linux installers are published from the desktop release pipeline.

@@ -1,0 +1,51 @@
+{
+  "name": "@taskforceai/voice",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cross-platform voice adapter layer for TaskForceAI clients",
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./adapters/desktop": {
+      "types": "./src/adapters/desktop.ts",
+      "default": "./src/adapters/desktop.ts"
+    },
+    "./adapters/web": {
+      "types": "./src/adapters/web.ts",
+      "default": "./src/adapters/web.ts"
+    },
+    "./adapters/noop": {
+      "types": "./src/adapters/noop.ts",
+      "default": "./src/adapters/noop.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
+    },
+    "./logger": {
+      "types": "./src/logger.ts",
+      "default": "./src/logger.ts"
+    }
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/tsgo",
+    "typecheck": "../../node_modules/.bin/tsgo --noEmit"
+  },
+  "dependencies": {
+    "@taskforceai/shared": "workspace:*",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@taskforceai/toolchain": "workspace:*"
+  }
+}

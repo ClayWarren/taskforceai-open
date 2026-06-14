@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "~/.bun/bin/bun run build:vercel",
+  "installCommand": "cd ../.. && curl -fsSL https://bun.sh/install | bash -s \"bun-v1.3.14\" && ~/.bun/bin/bun install --no-save",
+  "framework": null
+}

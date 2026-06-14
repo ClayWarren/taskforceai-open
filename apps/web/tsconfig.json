@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "types": ["bun-types", "bun-types/test", "@testing-library/jest-dom", "vite/client"]
+  },
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "env.ts",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "vite-env.d.ts",
+    "../../types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}

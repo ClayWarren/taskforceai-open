@@ -1,0 +1,32 @@
+[install]
+cacheDir = ".bun-cache"
+
+[test]
+# Run each test file in its own worker to prevent cross-test state pollution
+isolation = 'process'
+# Global preload for backend mocks (Prisma, Redis, Env)
+preload = ["./tests/setup/global-mocks.ts"]
+# NOTE: Use 'bun run test:unit' for unit tests only (from tests/run-unit-bun.ts)
+# 'bun test' directly includes all workspaces including qa/e2e - avoid this
+root = ["./packages", "./apps"]
+# Exclude build artifacts
+ignore = ["**/dist/**", "**/.next/**", "**/node_modules/**"]
+# Run integration tests concurrently for faster execution (Bun 1.2.23+)
+concurrentTestGlob = "**/*.integration.test.ts"
+# Coverage settings handled via CLI flags, not config
+# This avoids Bun bug where config settings override CLI flags
+
+[alias]
+"@/" = "./apps/web/app/"
+"@/lib" = "./apps/web/lib"
+"@shared" = "./packages/shared-ts/src"
+"@shared/" = "./packages/shared-ts/src/"
+"@tests" = "./tests"
+"@qa" = "./qa"
+"@qa/observability" = "./qa/observability.ts"
+"@qa/policyManager" = "./qa/policyManager.ts"
+"@qa/resilienceHarness" = "./qa/resilienceHarness.ts"
+"@taskforceai/prisma" = "./apps/web/generated/prisma"
+"server-only" = "./tests/mocks/server-only.ts"
+"@taskforceai/voice" = "./tests/mocks/voice.ts"
+"@taskforceai/voice/" = "./tests/mocks/voice.ts"

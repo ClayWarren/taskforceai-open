@@ -1,0 +1,826 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  engineType      = "library"
+  binaryTargets   = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                    Int      @id @default(autoincrement())
+  email                 String   @unique
+  fullName              String?  @map("full_name")
+  disabled              Boolean  @default(false)
+  themePreference       String   @default("dark") @map("theme_preference")
+  memoryEnabled         Boolean  @default(true) @map("memory_enabled")
+  webSearchEnabled      Boolean  @default(true) @map("web_search_enabled")
+  codeExecutionEnabled  Boolean  @default(true) @map("code_execution_enabled")
+  notificationsEnabled  Boolean  @default(true) @map("notifications_enabled")
+  trustLayerEnabled     Boolean  @default(false) @map("trust_layer_enabled")
+  quickModeEnabled      Boolean  @default(false) @map("quick_mode_enabled")
+  mfaEnabled            Boolean  @default(false) @map("mfa_enabled")
+  mfaTotpSecret         String?  @map("mfa_totp_secret")
+  mfaVerifiedAt         DateTime? @map("mfa_verified_at")
+  plan                  String   @default("free")
+  messageCount          Int      @default(0) @map("message_count")
+  lastMessageTimestamp  DateTime? @map("last_message_timestamp")
+  isAdmin               Boolean  @default(false) @map("is_admin")
+  subscriptionId        String?  @map("subscription_id")
+  subscriptionStatus    String?  @map("subscription_status")
+  subscriptionSource    SubscriptionSource? @map("subscription_source")
+  priceId               String?  @map("price_id")
+  paymentMethodBrand    String?  @map("payment_method_brand")
+  paymentMethodLast4    String?  @map("payment_method_last4")
+  currentPeriodStart    DateTime? @map("current_period_start")
+  currentPeriodEnd      DateTime? @map("current_period_end")
+  cancelAtPeriodEnd     Boolean  @default(false) @map("cancel_at_period_end")
+  stripeSubscriptionEventCreatedAt DateTime? @map("stripe_subscription_event_created_at")
+  customerId            String?  @map("customer_id")
+  revenuecatAppUserId   String?  @map("revenuecat_app_user_id")
+  mobileOriginalTransactionId String? @map("mobile_original_transaction_id")
+  mobileProductId       String?  @map("mobile_product_id")
+  // API-specific subscription fields
+  apiSubscriptionId     String?  @map("api_subscription_id")
+  apiSubscriptionStatus String?  @map("api_subscription_status")
+  apiTier               DeveloperApiTier @default(STARTER) @map("api_tier")
+  apiRequestsUsed       Int      @default(0) @map("api_requests_used")
+  apiRequestsLimit      Int      @default(100) @map("api_requests_limit")
+  apiCurrentPeriodStart DateTime? @map("api_current_period_start")
+  apiCurrentPeriodEnd DateTime? @map("api_current_period_end")
+  requestsLimit         Int?     @map("requests_limit")
+  resetDate             DateTime? @map("reset_date")
+  creditBalance         Decimal   @default(0) @map("credit_balance") @db.Decimal(10, 2)
+  autoRechargeEnabled   Boolean   @default(false) @map("auto_recharge_enabled")
+  autoRechargeAmount    Decimal?  @map("auto_recharge_amount") @db.Decimal(10, 2)
+  autoRechargeThreshold Decimal?  @map("auto_recharge_threshold") @db.Decimal(10, 2)
+
+  apiKeys DeveloperApiKey[]
+
+  deviceLogins DeviceLogin[]
+  pushTokens  PushNotificationToken[]
+
+  accounts      Account[]
+  sessions      Session[]
+  memories      Memory[]
+  projects      Project[]
+  memberships   Membership[]
+  agents        Agent[]
+  ownedArtifacts Artifact[] @relation("ArtifactOwner")
+  createdArtifactVersions ArtifactVersion[] @relation("ArtifactVersionCreator")
+  artifactShares ArtifactShare[] @relation("ArtifactShareTarget")
+  financialConnections FinancialConnection[]
+
+  @@index([plan])
+  @@index([isAdmin])
+  @@index([subscriptionStatus])
+  @@map("users")
+}
+
+model Organization {
+  id                    Int      @id @default(autoincrement())
+  name                  String
+  slug                  String   @unique
+  domain                String?  @unique // For auto-joining users by email domain
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Enterprise Billing
+  plan                  String   @default("free")
+  subscriptionId        String?  @map("subscription_id")
+  subscriptionStatus    String?  @map("subscription_status")
+  customerId            String?  @map("customer_id")
+
+  // WorkOS Integration
+  workosOrganizationId  String?  @unique @map("workos_organization_id")
+
+  // Data Governance
+  noTraining            Boolean  @default(false) @map("no_training")
+  settings              Json?
+
+  members               Membership[]
+  projects              Project[]
+  conversations         Conversation[]
+  artifacts             Artifact[]
+  artifactShares        ArtifactShare[]
+  auditLogs             AuditLog[]
+  financialConnections  FinancialConnection[]
+
+  @@map("organizations")
+}
+
+model FinancialConnection {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @map("user_id")
+  organizationId       Int?     @map("organization_id")
+  provider             String
+  providerItemId       String   @map("provider_item_id")
+  encryptedAccessToken String   @map("encrypted_access_token")
+  status               String   @default("active")
+  products             String[] @default([])
+  transactionsCursor   String?  @map("transactions_cursor")
+  institutionId        String?  @map("institution_id")
+  institutionName      String?  @map("institution_name")
+  lastSyncedAt         DateTime? @map("last_synced_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization         Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accounts             FinancialAccount[]
+  transactions         FinancialTransaction[]
+  recurringStreams     FinancialRecurringStream[]
+
+  @@unique([provider, providerItemId])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("financial_connections")
+}
+
+model FinancialAccount {
+  id                 Int      @id @default(autoincrement())
+  connectionId       Int      @map("connection_id")
+  providerAccountId  String   @map("provider_account_id")
+  name               String
+  mask               String?
+  type               String?
+  subtype            String?
+  currentBalance     Decimal? @map("current_balance")
+  availableBalance   Decimal? @map("available_balance")
+  isoCurrencyCode    String?  @map("iso_currency_code")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  connection         FinancialConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, providerAccountId])
+  @@index([connectionId])
+  @@map("financial_accounts")
+}
+
+model FinancialTransaction {
+  id                    Int      @id @default(autoincrement())
+  connectionId          Int      @map("connection_id")
+  providerTransactionId String   @map("provider_transaction_id")
+  providerAccountId     String   @map("provider_account_id")
+  amount                Decimal
+  isoCurrencyCode       String?  @map("iso_currency_code")
+  date                  DateTime @db.Date
+  authorizedDate        DateTime? @map("authorized_date") @db.Date
+  name                  String
+  merchantName          String?  @map("merchant_name")
+  primaryCategory       String?  @map("primary_category")
+  detailedCategory      String?  @map("detailed_category")
+  pending               Boolean  @default(false)
+  removed               Boolean  @default(false)
+  raw                   Json?
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  connection            FinancialConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, providerTransactionId])
+  @@index([connectionId])
+  @@index([date])
+  @@map("financial_transactions")
+}
+
+model FinancialRecurringStream {
+  id                Int      @id @default(autoincrement())
+  connectionId      Int      @map("connection_id")
+  providerStreamId  String   @map("provider_stream_id")
+  providerAccountId String   @map("provider_account_id")
+  streamType        String   @map("stream_type")
+  merchantName      String?  @map("merchant_name")
+  description       String?
+  frequency         String?
+  lastAmount        Decimal? @map("last_amount")
+  isoCurrencyCode   String?  @map("iso_currency_code")
+  lastDate          DateTime? @map("last_date") @db.Date
+  status            String?
+  raw               Json?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  connection        FinancialConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, providerStreamId])
+  @@index([connectionId])
+  @@map("financial_recurring_streams")
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Membership {
+  id             Int              @id @default(autoincrement())
+  organizationId Int              @map("organization_id")
+  userId         Int              @map("user_id")
+  role           OrganizationRole @default(MEMBER)
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Agent {
+  id              String    @id @default(cuid())
+  userId          Int       @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Identity
+  name            String
+  description     String?
+  avatar          String?
+  modelId         String?   @map("model_id")
+
+  // Pulse Configuration
+  autonomyEnabled Boolean   @default(false) @map("autonomy_enabled")
+  timezone        String    @default("UTC")
+  activeStart     String    @default("09:00") @map("active_start")
+  activeEnd       String    @default("17:00") @map("active_end")
+  activeDays      Int[]     @map("active_days")
+  checkInterval   Int       @default(600) @map("check_interval")
+
+  // State
+  lastRunAt       DateTime? @map("last_run_at")
+  nextRunAt       DateTime? @map("next_run_at")
+  status          String    @default("IDLE") // IDLE, BUSY, PAUSED
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt       @map("updated_at")
+
+  @@index([userId])
+  @@index([autonomyEnabled])
+  @@map("agents")
+}
+
+model Project {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @map("user_id")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId    Int?     @map("organization_id")
+  organization      Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  name              String
+  description       String?
+  customInstructions String? @map("custom_instructions") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  conversations     Conversation[]
+  @@index([userId])
+  @@index([organizationId])
+  @@map("projects")
+}
+
+model Memory {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  type      String   @default("fact") // fact, preference, context
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("memories")
+}
+
+enum SubscriptionSource {
+  STRIPE
+  APP_STORE
+  PLAY_STORE
+}
+
+ model Account {
+   id                String  @id @default(cuid())
+   userId            Int     @map("user_id")
+   type              String
+   provider          String
+   providerAccountId String  @map("provideraccountid")
+   refresh_token     String?
+   access_token      String?
+   expires_at        Int?
+   token_type        String?
+   scope             String?
+   id_token          String?
+   session_state     String?
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@unique([provider, providerAccountId])
+   @@index([userId])
+   @@map("accounts")
+ }
+
+ model Session {
+   id           String   @id @default(cuid())
+   sessionToken String   @unique
+   userId       Int      @map("user_id")
+   expires      DateTime
+   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("sessions")
+ }
+
+ model VerificationToken {
+   identifier String
+   token      String   @unique
+   expires    DateTime
+
+   @@unique([identifier, token])
+   @@map("verification_tokens")
+ }
+
+model Conversation {
+  id             Int       @id @default(autoincrement())
+  timestamp      DateTime  @default(now())
+  /// External or anonymous user identifier for offline/local-first flows (not a FK to User.id)
+  userId         String?   @map("user_id")
+  organizationId Int?      @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  userInput      String    @map("user_input")
+  result         String?
+  executionTime  Float?    @map("execution_time")
+  model          String?
+  agentCount     Int       @default(4) @map("agent_count")
+  projectId      Int?      @map("project_id")
+  project        Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  isPublic       Boolean   @default(false) @map("is_public")
+  shareId        String?   @unique @map("share_id")
+  vectorClock    Json?     @map("vector_clock")
+
+  // Sync metadata
+  syncVersion    Int       @default(dbgenerated("nextval('sync_version_seq'::regclass)")) @map("sync_version")
+  lastSyncedAt   DateTime  @default(now()) @map("last_synced_at")
+  deviceId       String?   @map("device_id")
+  isDeleted      Boolean   @default(false) @map("is_deleted")
+  deletedAt      DateTime? @map("deleted_at")
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  messages       Message[]
+  artifacts      Artifact[]
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([timestamp])
+  @@index([syncVersion])
+  @@index([lastSyncedAt])
+  @@index([userId, isDeleted])
+  @@index([userId, timestamp])
+  @@map("conversations")
+}
+
+model Message {
+  id              Int          @id @default(autoincrement())
+  messageId       String       @unique @map("message_id")
+  conversationId  Int          @map("conversation_id")
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role            String       // 'user', 'assistant', 'system'
+  content         String
+  isStreaming     Boolean      @default(false) @map("is_streaming")
+  isAgentStatus   Boolean      @default(false) @map("is_agent_status")
+  elapsedSeconds  Float?       @map("elapsed_seconds")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  error           String?
+  sources         Json?        // SourceReference[]
+  toolEvents      Json?        @map("tool_events") // ToolUsageEvent[]
+  agentStatuses   Json?        @map("agent_statuses") // AgentStatus[]
+  vectorClock     Json?        @map("vector_clock")
+  trace           Json?
+  rating          Int          @default(0)
+  artifacts       Artifact[]   @relation("ArtifactMessage")
+
+  // Sync metadata
+  syncVersion     Int          @default(dbgenerated("nextval('sync_version_seq'::regclass)")) @map("sync_version")
+  lastSyncedAt    DateTime     @default(now()) @map("last_synced_at")
+  deviceId        String?      @map("device_id")
+  isDeleted       Boolean      @default(false) @map("is_deleted")
+  deletedAt       DateTime?    @map("deleted_at")
+  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  @@index([conversationId, createdAt])
+  @@index([messageId])
+  @@index([syncVersion])
+  @@index([lastSyncedAt])
+  @@map("messages")
+}
+
+enum ArtifactType {
+  DOCUMENT
+  SPREADSHEET
+  CHART
+  IMAGE
+  VIDEO
+  SITE
+  DASHBOARD
+  ARCHIVE
+  OTHER
+}
+
+enum ArtifactStatus {
+  PROCESSING
+  READY
+  FAILED
+  DELETED
+}
+
+enum ArtifactVisibility {
+  PRIVATE
+  ORGANIZATION
+  PUBLIC_LINK
+}
+
+enum ArtifactShareScope {
+  ORGANIZATION
+  PUBLIC_LINK
+  USER
+}
+
+enum ArtifactPermission {
+  VIEW
+  COMMENT
+  EDIT
+}
+
+model Artifact {
+  id               String             @id @default(cuid())
+  organizationId   Int?               @map("organization_id")
+  organization     Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  ownerUserId      Int                @map("owner_user_id")
+  owner            User               @relation("ArtifactOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  conversationId   Int?               @map("conversation_id")
+  conversation     Conversation?      @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  messageId        String?            @map("message_id")
+  message          Message?           @relation("ArtifactMessage", fields: [messageId], references: [messageId], onDelete: SetNull)
+  taskId           String?            @map("task_id")
+  type             ArtifactType
+  title            String
+  status           ArtifactStatus     @default(READY)
+  visibility       ArtifactVisibility @default(PRIVATE)
+  currentVersionId String?            @unique @map("current_version_id")
+  currentVersion   ArtifactVersion?   @relation("CurrentArtifactVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  metadata         Json?
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  deletedAt        DateTime?          @map("deleted_at")
+
+  versions         ArtifactVersion[]  @relation("ArtifactVersions")
+  shares           ArtifactShare[]
+
+  @@index([organizationId])
+  @@index([ownerUserId, createdAt])
+  @@index([conversationId])
+  @@index([messageId])
+  @@index([taskId])
+  @@index([type])
+  @@index([status])
+  @@index([visibility])
+  @@map("artifacts")
+}
+
+model ArtifactVersion {
+  id              String    @id @default(cuid())
+  artifactId      String    @map("artifact_id")
+  artifact        Artifact  @relation("ArtifactVersions", fields: [artifactId], references: [id], onDelete: Cascade)
+  currentFor      Artifact? @relation("CurrentArtifactVersion")
+  version         Int
+  fileId          String?   @map("file_id")
+  mimeType        String?   @map("mime_type")
+  filename        String?
+  bytes           BigInt?
+  renderMetadata  Json?     @map("render_metadata")
+  sourceToolName  String?   @map("source_tool_name")
+  sourcePrompt    String?   @map("source_prompt") @db.Text
+  createdByUserId Int?      @map("created_by_user_id")
+  createdBy       User?     @relation("ArtifactVersionCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@unique([artifactId, version])
+  @@index([artifactId])
+  @@index([fileId])
+  @@index([createdByUserId])
+  @@map("artifact_versions")
+}
+
+model ArtifactShare {
+  id             String             @id @default(cuid())
+  artifactId     String             @map("artifact_id")
+  artifact       Artifact           @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  organizationId Int?               @map("organization_id")
+  organization   Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scope          ArtifactShareScope
+  targetUserId   Int?               @map("target_user_id")
+  targetUser     User?              @relation("ArtifactShareTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  tokenHash      String?            @unique @map("token_hash")
+  permission     ArtifactPermission @default(VIEW)
+  expiresAt      DateTime?          @map("expires_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  revokedAt      DateTime?          @map("revoked_at")
+
+  @@index([artifactId])
+  @@index([organizationId])
+  @@index([targetUserId])
+  @@index([scope])
+  @@map("artifact_shares")
+}
+
+model Metric {
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  metricName  String   @map("metric_name")
+  metricValue Float?   @map("metric_value")
+  details     String?
+
+  @@index([metricName])
+  @@index([timestamp])
+  @@map("metrics")
+}
+
+model Download {
+  id            Int      @id @default(autoincrement())
+  timestamp     DateTime @default(now())
+  product       String   // desktop, cli, mobile
+  platform      String   // macos, windows, linux, ios, android
+  version       String   // latest, v1.0.0, etc.
+  userAgent     String?  @map("user_agent")
+  ipAddressHash String?  @map("ip_address_hash") // SHA-256 hash for privacy (GDPR compliant)
+  country       String?  // Derived from IP for analytics
+  referrer      String?
+
+  @@index([product])
+  @@index([platform])
+  @@index([timestamp])
+  @@index([product, platform])
+  @@map("downloads")
+}
+
+model PushNotificationToken {
+  id               Int      @id @default(autoincrement())
+  token            String   @unique
+  platform         String
+  deviceId         String?  @map("device_id")
+  appVersion       String?  @map("app_version")
+  lastRegisteredAt DateTime @default(now()) @map("last_registered_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  userId           Int?     @map("user_id")
+  user             User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_notification_tokens")
+}
+
+model RateLimit {
+  id          Int      @id @default(autoincrement())
+  /// String identity so anonymous/local users can be rate-limited without a User row
+  userId      String   @map("user_id")
+  plan        String
+  windowStart DateTime @map("window_start")
+  count       Int      @default(0)
+
+  @@unique([userId, plan, windowStart])
+  @@index([userId])
+  @@index([windowStart])
+  @@map("rate_limits")
+}
+
+enum DeveloperApiTier {
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+model DeveloperApiKey {
+  id           Int               @id @default(autoincrement())
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int               @map("user_id")
+  keyHash      String            @unique @map("key_hash")
+  displayKey   String            @map("display_key")
+  name         String?
+  tier         DeveloperApiTier  @default(STARTER)
+  rateLimit    Int               @default(10) @map("rate_limit")
+  monthlyQuota Int               @default(100) @map("monthly_quota")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  revokedAt    DateTime?         @map("revoked_at")
+  lastUsedAt   DateTime?         @map("last_used_at")
+
+  usages DeveloperApiUsage[]
+
+  @@index([userId])
+  @@index([tier])
+  @@map("developer_api_keys")
+}
+
+model DeveloperApiUsage {
+  id          Int              @id @default(autoincrement())
+  apiKey      DeveloperApiKey  @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  apiKeyId    Int              @map("api_key_id")
+  windowStart DateTime         @map("window_start")
+  windowEnd   DateTime         @map("window_end")
+  count       Int              @default(0)
+  endpoint    String?
+  statusCode  Int?             @map("status_code")
+  responseTime Int?            @map("response_time")
+  timestamp   DateTime         @default(now())
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@unique([apiKeyId, windowStart])
+  @@index([windowEnd])
+  @@map("developer_api_usage")
+}
+
+model DeviceLogin {
+  id             Int                @id @default(autoincrement())
+  deviceCode     String             @unique @map("device_code")
+  userCode       String             @unique @map("user_code")
+  status         DeviceLoginStatus  @default(PENDING)
+  userId         Int?               @map("user_id")
+  pollInterval   Int                @default(5) @map("poll_interval")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  expiresAt      DateTime           @map("expires_at")
+  authorizedAt   DateTime?          @map("authorized_at")
+  completedAt    DateTime?          @map("completed_at")
+  lastPolledAt   DateTime?          @map("last_polled_at")
+  user           User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([status])
+  @@index([userId])
+  @@map("device_logins")
+}
+
+model Task {
+  taskId    String   @id @map("task_id")
+  prompt    String
+  /// String identity maintained to allow tasks created before account linking
+  userId    String?  @map("user_id")
+  modelId   String?  @map("model_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@index([userId, createdAt])
+  @@map("tasks")
+}
+
+// SOC2/GDPR Compliance: Audit logging
+model AuditLog {
+  id            Int      @id @default(autoincrement())
+  timestamp     DateTime @default(now())
+  userId        String?  @map("user_id")
+  organizationId Int?     @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  action        String   // CREATE, READ, UPDATE, DELETE, EXPORT, LOGIN, LOGOUT, etc.
+  resource      String   // conversation, user, api_key, etc.
+  resourceId    String?  @map("resource_id") // ID of affected resource
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  details       Json?    // Additional context
+  success       Boolean  @default(true)
+  errorMessage  String?  @map("error_message")
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+model SyncAuditLog {
+  id             Int      @id @default(autoincrement())
+  timestamp      DateTime @default(now())
+  userId         String   @map("user_id")
+  deviceId       String   @map("device_id")
+  action         String   // PULL, PUSH
+  versionStart   Int      @map("version_start")
+  versionEnd     Int      @map("version_end")
+  itemsCount     Int      @default(0) @map("items_count")
+  conflictsCount Int      @default(0) @map("conflicts_count")
+  durationMs     Int      @default(0) @map("duration_ms")
+  success        Boolean  @default(true)
+  errorMessage   String?  @map("error_message")
+  details        Json?
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("sync_audit_logs")
+}
+
+model SyncDevice {
+  id         Int      @id @default(autoincrement())
+  userId     String   @map("user_id")
+  deviceId   String   @map("device_id")
+  deviceName String?  @map("device_name")
+  userAgent  String?  @map("user_agent")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  isRevoked  Boolean  @default(false) @map("is_revoked")
+
+  @@unique([userId, deviceId])
+  @@map("sync_devices")
+}
+
+// Stripe webhook event tracking for idempotency
+model WebhookEvent {
+  id            Int      @id @default(autoincrement())
+  stripeEventId String   @unique @map("stripe_event_id")
+  type          String
+  processedAt   DateTime @default(now()) @map("processed_at")
+
+  @@index([stripeEventId])
+  @@index([type])
+  @@map("webhook_events")
+}
+
+model TokenUsage {
+  id               Int      @id @default(autoincrement())
+  createdAt        DateTime @default(now()) @map("created_at")
+  taskId           String?  @map("task_id")
+  conversationId   Int?     @map("conversation_id")
+  /// Usage can be tied to anonymous/local users; keep as string for compatibility
+  userId           String?  @map("user_id")
+  plan             String?
+  model            String?
+  stage            String?
+  promptTokens     Int      @default(0) @map("prompt_tokens")
+  completionTokens Int      @default(0) @map("completion_tokens")
+  totalTokens      Int      @default(0) @map("total_tokens")
+  costMicros       Int?     @map("cost_micros")
+  metadata         Json?
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([plan])
+  @@index([userId, createdAt])
+  @@map("token_usage")
+}
+
+model ToolUsage {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now()) @map("created_at")
+  taskId         String?  @map("task_id")
+  conversationId Int?     @map("conversation_id")
+  /// Usage can be tied to anonymous/local users; keep as string for compatibility
+  userId         String?  @map("user_id")
+  plan           String?
+  toolName       String   @map("tool_name")
+  success        Boolean
+  durationMs     Int?     @map("duration_ms")
+  error          String?
+  metadata       Json?
+
+  @@index([createdAt])
+  @@index([toolName])
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("tool_usage")
+}
+
+enum DeviceLoginStatus {
+  PENDING
+  AUTHORIZED
+  COMPLETED
+  EXPIRED
+
+  @@map("device_loginsStatus")
+}
+
+model ExecutionTrace {
+  id        String   @id @default(cuid())
+  taskId    String   @unique @map("task_id")
+  userId    Int?     @map("user_id")
+  goal      String   @db.Text
+  plan      Json?
+  steps     Json?    // Json[] effectively
+  selfEval  Json?    @map("self_eval")
+  artifacts Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([taskId])
+  @@map("execution_traces")
+}

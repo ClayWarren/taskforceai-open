@@ -1,0 +1,5 @@
+.vercel
+CHANGELOG.md
+
+# Generated from packages/openapi/openapi.yaml at build time
+public/openapi.yaml

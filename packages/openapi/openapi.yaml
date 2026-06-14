@@ -1,0 +1,262 @@
+openapi: 3.0.0
+info:
+  title: TaskForceAI Developer API
+  version: 1.0.0
+  description: |
+    Multi-agent AI orchestration API powered by **Sentinel**, our core high-reasoning layer.
+
+    ## Authentication
+    All API requests require an API key passed via the `x-api-key` header.
+
+    ## Rate Limits
+    Rate limits vary by tier:
+    - **STARTER**: 10 requests/hour, 100 requests/month
+    - **PRO**: 100 requests/hour, 10,000 requests/month
+    - **ENTERPRISE**: 1,000 requests/hour, 100,000 requests/month
+
+    ## Getting Started
+    1. Sign up at [console.taskforceai.chat](https://console.taskforceai.chat)
+    2. Navigate to your dashboard at `https://console.taskforceai.chat`
+    3. Create an API key
+    4. Use the API key in the `x-api-key` header
+
+  contact:
+    name: TaskForceAI Support
+    url: https://taskforceai.chat
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://taskforceai.chat/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Local development server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /developer/run:
+    post:
+      summary: Submit a multi-agent task
+      description: |
+        Submit a task to the multi-agent orchestration system powered by **Sentinel**. The system will:
+        1. Decompose your task into specialized questions
+        2. Run 4 parallel agents to research different perspectives
+        3. Synthesize the results into a comprehensive answer
+        4. Stream real-time progress updates
+      operationId: submitTask
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  description: The task or question you want answered
+                  example: 'Explain the key differences between TypeScript and JavaScript'
+                  minLength: 1
+                  maxLength: 10000
+                agentCount:
+                  type: integer
+                  description: Number of parallel agents to use (1-8)
+                  default: 4
+                  minimum: 1
+                  maximum: 8
+      responses:
+        '200':
+          description: Task submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                    description: Unique identifier for the task
+                    example: 'task_abc123xyz'
+                  message:
+                    type: string
+                    description: Success message
+                    example: 'Task submitted successfully'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /developer/status/{taskId}:
+    get:
+      summary: Check task status
+      description: Get the current status of a submitted task
+      operationId: getTaskStatus
+      tags:
+        - Tasks
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID returned from the submit endpoint
+          schema:
+            type: string
+            example: 'task_abc123xyz'
+      responses:
+        '200':
+          description: Task status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                    example: 'task_abc123xyz'
+                  status:
+                    type: string
+                    enum: [pending, processing, completed, failed, awaiting_approval]
+                    description: Current status of the task
+                  progress:
+                    type: object
+                    description: Real-time progress information
+                    properties:
+                      agents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            agentId:
+                              type: integer
+                            status:
+                              type: string
+                            result:
+                              type: string
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /developer/results/{taskId}:
+    get:
+      summary: Get task results
+      description: Retrieve the final results of a completed task
+      operationId: getTaskResults
+      tags:
+        - Tasks
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID returned from the submit endpoint
+          schema:
+            type: string
+            example: 'task_abc123xyz'
+      responses:
+        '200':
+          description: Task results retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                    example: 'task_abc123xyz'
+                  status:
+                    type: string
+                    example: 'completed'
+                  result:
+                    type: string
+                    description: The final synthesized answer
+                    example: 'TypeScript is a superset of JavaScript that adds static typing...'
+                  executionTime:
+                    type: number
+                    description: Total execution time in milliseconds
+                    example: 5420
+                  toolUsage:
+                    type: array
+                    description: Tools used during execution
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                        toolName:
+                          type: string
+                        agentLabel:
+                          type: string
+                        success:
+                          type: boolean
+        '404':
+          description: Task not found or not yet completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for authentication. Get yours from the console at https://console.taskforceai.chat
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: 'Invalid API key'
+        code:
+          type: string
+          description: Error code
+          example: 'INVALID_API_KEY'
+
+    RateLimitError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Rate limit exceeded'
+        code:
+          type: string
+          example: 'RATE_LIMIT_EXCEEDED'
+        resetTime:
+          type: string
+          format: date-time
+          description: When the rate limit will reset
+        limit:
+          type: integer
+          description: Your rate limit
+        remaining:
+          type: integer
+          description: Remaining requests in current window
+
+tags:
+  - name: Tasks
+    description: Task submission and management
