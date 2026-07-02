@@ -1,0 +1,29 @@
+{
+  "name": "@taskforceai/client-runtime",
+  "version": "1.0.0",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./pending-prompt-queue": {
+      "types": "./src/pending-prompt-queue.ts",
+      "default": "./src/pending-prompt-queue.ts"
+    },
+    "./send-message": {
+      "types": "./src/send-message.ts",
+      "default": "./src/send-message.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@taskforceai/contracts": "workspace:*",
+    "@taskforceai/persistence": "workspace:*",
+    "@taskforceai/shared": "workspace:*",
+    "zustand": "^5.0.14"
+  }
+}

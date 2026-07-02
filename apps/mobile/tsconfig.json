@@ -1,0 +1,67 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "types": [
+      "jest",
+      "node",
+      "bun-types"
+    ],
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "../../node_modules"
+    ],
+    "paths": {
+      "@taskforceai/locales/*": [
+        "../../packages/locales/*"
+      ],
+      "@taskforceai/shared/*": [
+        "../../packages/shared-ts/src/*"
+      ],
+      "@taskforceai/voice/*": [
+        "../../packages/voice/src/*"
+      ],
+      "@taskforceai/contracts/*": [
+        "../../packages/contracts-ts/src/*"
+      ],
+      "@taskforceai/persistence": [
+        "../../packages/persistence/src/index.ts"
+      ],
+      "@taskforceai/persistence/*": [
+        "../../packages/persistence/src/*"
+      ],
+      "@taskforceai/sync-client": [
+        "../../packages/sync-client/src/index.ts"
+      ],
+      "@taskforceai/sync-client/*": [
+        "../../packages/sync-client/src/*"
+      ],
+      "@taskforceai/design-tokens/*": [
+        "../../packages/design-tokens/*"
+      ],
+      "@taskforceai/react-core": [
+        "../../packages/react-core/src/index.ts"
+      ],
+      "@taskforceai/react-core/*": [
+        "../../packages/react-core/src/*"
+      ]
+    }
+  },
+  "exclude": [
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "test/**",
+    "**/node_modules/expo-file-system/**"
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
+  ]
+}

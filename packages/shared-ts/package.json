@@ -1,0 +1,261 @@
+{
+  "name": "@taskforceai/shared",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./result": "./src/result.ts",
+    "./branded": "./src/types/branded.ts",
+    "./types": "./src/types/index.ts",
+    "./auth/session-expiry": {
+      "types": "./src/auth/session-expiry.ts",
+      "default": "./src/auth/session-expiry.ts"
+    },
+    "./auth/device-login": {
+      "types": "./src/auth/device-login.ts",
+      "default": "./src/auth/device-login.ts"
+    },
+    "./artifacts": {
+      "types": "./src/artifacts.ts",
+      "default": "./src/artifacts.ts"
+    },
+    "./utils": "./src/utils.ts",
+    "./utils/api": "./src/utils/api.ts",
+    "./utils/runtime": "./src/utils/runtime.ts",
+    "./utils/env-parsing": "./src/utils/env-parsing.ts",
+    "./utils/url-host": "./src/utils/url-host.ts",
+    "./utils/browser-actions": "./src/utils/browser-actions.ts",
+    "./utils/browser-storage": "./src/utils/browser-storage.ts",
+    "./utils/agent-progress": "./src/utils/agent-progress.ts",
+    "./utils/cookies": "./src/utils/cookies.ts",
+    "./utils/object": {
+      "types": "./src/utils/object.ts",
+      "default": "./src/utils/object.ts"
+    },
+    "./utils/id": {
+      "types": "./src/utils/id.ts",
+      "default": "./src/utils/id.ts"
+    },
+    "./utils/math": {
+      "types": "./src/utils/math.ts",
+      "default": "./src/utils/math.ts"
+    },
+    "./utils/source-extraction": "./src/utils/source-extraction.ts",
+    "./utils/collection": {
+      "types": "./src/utils/collection.ts",
+      "default": "./src/utils/collection.ts"
+    },
+    "./mocks": {
+      "types": "./src/mocks/index.ts",
+      "default": "./src/mocks/index.ts"
+    },
+    "./mcp/endpoint": {
+      "types": "./src/mcp/endpoint.ts",
+      "default": "./src/mcp/endpoint.ts"
+    },
+    "./mcp/settings": {
+      "types": "./src/mcp/settings.ts",
+      "default": "./src/mcp/settings.ts"
+    },
+    "./profile/view-model": {
+      "types": "./src/profile/view-model.ts",
+      "default": "./src/profile/view-model.ts"
+    },
+    "./config/server": {
+      "types": "./src/config/server.ts",
+      "default": "./src/config/server.ts"
+    },
+    "./support/reportIssues": {
+      "types": "./src/support/reportIssues.ts",
+      "default": "./src/support/reportIssues.ts"
+    },
+    "./logging/log-context": {
+      "types": "./src/logging/log-context.ts",
+      "default": "./src/logging/log-context.ts"
+    },
+    "./logging/base-meta": {
+      "types": "./src/logging/base-meta.ts",
+      "default": "./src/logging/base-meta.ts"
+    },
+    "./logging/meta": {
+      "types": "./src/logging/meta.ts",
+      "default": "./src/logging/meta.ts"
+    },
+    "./logging/structured-logger": {
+      "types": "./src/logging/structured-logger.ts",
+      "default": "./src/logging/structured-logger.ts"
+    },
+    "./logging/sanitize": {
+      "types": "./src/logging/sanitize.ts",
+      "default": "./src/logging/sanitize.ts"
+    },
+    "./errors/rate-limit-view": {
+      "types": "./src/errors/rate-limit-view.ts",
+      "default": "./src/errors/rate-limit-view.ts"
+    },
+    "./tool-usage/parsers": {
+      "types": "./src/tool-usage/parsers.ts",
+      "default": "./src/tool-usage/parsers.ts"
+    },
+    "./tool-usage/view-model": {
+      "types": "./src/tool-usage/view-model.ts",
+      "default": "./src/tool-usage/view-model.ts"
+    },
+    "./streaming/types": {
+      "types": "./src/streaming/types.ts",
+      "default": "./src/streaming/types.ts"
+    },
+    "./streaming/schema": {
+      "types": "./src/streaming/schema.ts",
+      "default": "./src/streaming/schema.ts"
+    },
+    "./streaming/engine": {
+      "types": "./src/streaming/engine.ts",
+      "default": "./src/streaming/engine.ts"
+    },
+    "./streaming/state": {
+      "types": "./src/streaming/state.ts",
+      "default": "./src/streaming/state.ts"
+    },
+    "./streaming/normalization": {
+      "types": "./src/streaming/normalization.ts",
+      "default": "./src/streaming/normalization.ts"
+    },
+    "./streaming/lifecycle": {
+      "types": "./src/streaming/lifecycle.ts",
+      "default": "./src/streaming/lifecycle.ts"
+    },
+    "./streaming/lifecycle-effects": {
+      "types": "./src/streaming/lifecycle-effects.ts",
+      "default": "./src/streaming/lifecycle-effects.ts"
+    },
+    "./streaming/message-updates": {
+      "types": "./src/streaming/message-updates.ts",
+      "default": "./src/streaming/message-updates.ts"
+    },
+    "./storage/value-utils": {
+      "types": "./src/storage/value-utils.ts",
+      "default": "./src/storage/value-utils.ts"
+    },
+    "./chat/types": {
+      "types": "./src/chat/types.ts",
+      "default": "./src/chat/types.ts"
+    },
+    "./chat/model-selection-storage": {
+      "types": "./src/chat/model-selection-storage.ts",
+      "default": "./src/chat/model-selection-storage.ts"
+    },
+    "./chat/orchestration-storage": {
+      "types": "./src/chat/orchestration-storage.ts",
+      "default": "./src/chat/orchestration-storage.ts"
+    },
+    "./chat/pending-prompts": {
+      "types": "./src/chat/pending-prompts.ts",
+      "default": "./src/chat/pending-prompts.ts"
+    },
+    "./chat/attachments": {
+      "types": "./src/chat/attachments.ts",
+      "default": "./src/chat/attachments.ts"
+    },
+    "./chat/generated-media": {
+      "types": "./src/chat/generated-media.ts",
+      "default": "./src/chat/generated-media.ts"
+    },
+    "./chat/prompt-view-model": {
+      "types": "./src/chat/prompt-view-model.ts",
+      "default": "./src/chat/prompt-view-model.ts"
+    },
+    "./chat/mcp-command": {
+      "types": "./src/chat/mcp-command.ts",
+      "default": "./src/chat/mcp-command.ts"
+    },
+    "./json/parse": {
+      "types": "./src/json/parse.ts",
+      "default": "./src/json/parse.ts"
+    },
+    "./search/keyword-utils": {
+      "types": "./src/search/keyword-utils.ts",
+      "default": "./src/search/keyword-utils.ts"
+    },
+    "./sidebar/view-model": {
+      "types": "./src/sidebar/view-model.ts",
+      "default": "./src/sidebar/view-model.ts"
+    },
+    "./time/clock": {
+      "types": "./src/time/clock.ts",
+      "default": "./src/time/clock.ts"
+    },
+    "./time/display-format": {
+      "types": "./src/time/display-format.ts",
+      "default": "./src/time/display-format.ts"
+    },
+    "./random/rng": {
+      "types": "./src/random/rng.ts",
+      "default": "./src/random/rng.ts"
+    },
+    "./logger": {
+      "types": "./src/logger/index.ts",
+      "default": "./src/logger/index.ts"
+    },
+    "./config/env": {
+      "types": "./src/config/env.ts",
+      "default": "./src/config/env.ts"
+    },
+    "./config/base-env": {
+      "types": "./src/config/base-env.ts",
+      "default": "./src/config/base-env.ts"
+    },
+    "./config/platform-limits": {
+      "types": "./src/config/platform-limits.ts",
+      "default": "./src/config/platform-limits.ts"
+    },
+    "./config/app-env": {
+      "types": "./src/config/app-env.ts",
+      "default": "./src/config/app-env.ts"
+    },
+    "./config/mobile": {
+      "types": "./src/config/mobile.ts",
+      "default": "./src/config/mobile.ts"
+    },
+    "./sync/limits": {
+      "types": "./src/sync/limits.ts",
+      "default": "./src/sync/limits.ts"
+    },
+    "./i18n/config": {
+      "types": "./src/i18n/config.ts",
+      "default": "./src/i18n/config.ts"
+    },
+    "./preferences/theme-storage": {
+      "types": "./src/preferences/theme-storage.ts",
+      "default": "./src/preferences/theme-storage.ts"
+    },
+    "./validation": {
+      "types": "./src/validation/index.ts",
+      "default": "./src/validation/index.ts"
+    },
+    "./errors": {
+      "types": "./src/errors/index.ts",
+      "default": "./src/errors/index.ts"
+    }
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.11",
+    "cockatiel": "^4.0.0",
+    "fuse.js": "^7.4.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@babel/runtime": "^7.29.7",
+    "i18next": "^26.3.3",
+    "react-i18next": "^17.0.8"
+  }
+}

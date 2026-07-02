@@ -1,0 +1,98 @@
+---
+title: 'Rust SDK'
+description: 'High-performance, async-first Rust client for TaskForceAI'
+---
+
+The TaskForceAI Rust SDK provides a strictly typed, high-performance interface for our platform.
+
+The package README is the canonical reference for configuration fields, task helpers, SSE streaming, and version-specific examples. This page is intentionally lightweight so the detailed reference only lives in one place.
+
+## Canonical Reference
+
+- Package README: [packages/sdk-rust/README.md](https://github.com/TaskForceAI/taskforceai/blob/main/packages/sdk-rust/README.md)
+- REST API reference: [/docs/api](/docs/api)
+
+## Installation
+
+Install with `cargo`:
+
+```bash
+cargo add taskforceai-sdk
+```
+
+## Quick Start
+
+```rust
+use taskforceai_sdk::{TaskForceAI, TaskForceAIOptions};
+
+#[tokio::main]
+async fn main() {
+    let client = TaskForceAI::new(TaskForceAIOptions {
+        api_key: Some("your-api-key-here".to_string()),
+        ..Default::default()
+    })
+    .expect("failed to create client");
+
+    let status = client
+        .run_task("Analyze this repository", None, None, None)
+        .await
+        .expect("task failed");
+
+    if let Some(result) = status.result {
+        println!("Result: {}", result);
+    }
+}
+```
+
+## Streaming
+
+```rust
+use futures_util::StreamExt;
+
+let mut stream = client
+    .run_task_stream("Long running task", None)
+    .await?;
+
+while let Some(status) = stream.next().await {
+    match status {
+        Ok(update) => println!("Status: {:?}", update.status),
+        Err(error) => eprintln!("Error: {}", error),
+    }
+}
+```
+
+## Files and Threads
+
+```rust
+use bytes::Bytes;
+use taskforceai_sdk::{CreateThreadOptions, FileUploadOptions, ThreadRunOptions};
+
+let uploaded = client
+    .upload_file(
+        "brief.txt",
+        Bytes::from_static(b"Context for the run"),
+        Some(FileUploadOptions {
+            purpose: Some("assistants".to_string()),
+            mime_type: Some("text/plain".to_string()),
+        }),
+    )
+    .await?;
+
+let thread = client
+    .create_thread(Some(CreateThreadOptions {
+        title: Some("Security review".to_string()),
+        ..Default::default()
+    }))
+    .await?;
+
+let run = client
+    .run_in_thread(
+        thread.id,
+        ThreadRunOptions {
+            prompt: "Review the uploaded brief.".to_string(),
+            options: Some([("agentCount".to_string(), serde_json::json!(4))].into()),
+            ..Default::default()
+        },
+    )
+    .await?;
+```

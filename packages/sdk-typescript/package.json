@@ -1,0 +1,58 @@
+{
+  "name": "taskforceai-sdk",
+  "version": "1.4.0",
+  "description": "TypeScript SDK for TaskForceAI",
+  "keywords": [
+    "ai",
+    "multi-agent",
+    "orchestration",
+    "sdk",
+    "taskforceai"
+  ],
+  "homepage": "https://taskforceai.chat",
+  "bugs": {
+    "url": "https://github.com/ClayWarren/taskforceai-open/issues"
+  },
+  "license": "MIT",
+  "author": "TaskForceAI",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ClayWarren/taskforceai-open.git",
+    "directory": "packages/sdk-typescript"
+  },
+  "files": [
+    "README.md",
+    "dist/**/*"
+  ],
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc",
+    "test": "bun test --preload ../../tests/bun-setup.ts",
+    "test:watch": "bun test --watch --preload ../../tests/bun-setup.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@taskforceai/shared": "workspace:*",
+    "@taskforceai/toolchain": "workspace:*",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "zod": "^4.4.3"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  }
+}

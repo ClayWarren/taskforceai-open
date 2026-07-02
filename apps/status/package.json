@@ -1,0 +1,67 @@
+{
+  "name": "@taskforceai/status",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TaskForceAI System Status",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./app/*": "./app/*",
+    "./logger": {
+      "types": "./app/lib/logger.ts",
+      "default": "./app/lib/logger.ts"
+    },
+    "./lib/*": {
+      "types": "./app/lib/*",
+      "default": "./app/lib/*"
+    },
+    "./utils/*": {
+      "types": "./app/lib/utils/*",
+      "default": "./app/lib/utils/*"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "NODE_OPTIONS='--no-deprecation' vite build",
+    "build:vercel": "bun run scripts/vercel-build.ts",
+    "build:ci": "bun run typecheck && NODE_OPTIONS='--no-deprecation' vite build",
+    "build:desktop": "NODE_OPTIONS='--no-deprecation' vite build",
+    "start": "bun x vite preview --host 0.0.0.0 --strictPort --port ${PORT:-3007}",
+    "test": "bun test --preload ../../tests/setup/dom.ts",
+    "lint": "bun x oxlint --config ../../oxlint.config.json",
+    "lint:fix": "bun x oxlint --config ../../oxlint.config.json --fix",
+    "typecheck": "bun ../../scripts/dev/generate-route-trees.ts status && ../../node_modules/.bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "@sentry/react": "^10.62.0",
+    "@tanstack/react-router": "1.170.16",
+    "@tanstack/react-start": "1.168.26",
+    "@taskforceai/contracts": "workspace:*",
+    "@taskforceai/observability": "workspace:*",
+    "@taskforceai/react-core": "workspace:*",
+    "@taskforceai/shared": "workspace:*",
+    "@taskforceai/ui-kit": "workspace:*",
+    "date-fns": "^4.4.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "@taskforceai/toolchain": "workspace:*",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.9.4",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "happy-dom": "^20.10.6",
+    "nitro": "3.0.260610-beta",
+    "tailwindcss": "^4.3.1",
+    "vite": "^8.0.16",
+    "vite-tsconfig-paths": "^6.1.1"
+  },
+  "packageManager": "bun@1.3.14"
+}

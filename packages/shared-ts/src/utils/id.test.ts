@@ -1,0 +1,12 @@
+import { describe, expect, it } from 'bun:test';
+
+import { MockRNG } from '../random/rng';
+import { createId } from './id';
+
+describe('utils/id', () => {
+  it('creates ids by prefixing the injected uuid generator output', () => {
+    const rng = new MockRNG(0.5, '123e4567-e89b-12d3-a456-426614174000');
+
+    expect(createId('msg', rng)).toBe('msg-123e4567-e89b-12d3-a456-426614174000');
+  });
+});

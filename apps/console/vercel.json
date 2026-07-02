@@ -1,0 +1,27 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bun run build:vercel",
+  "installCommand": "script=../../scripts/vercel/install-frontend-deps.ts; [ -f \"$script\" ] || script=scripts/vercel/install-frontend-deps.ts; bun \"$script\"",
+  "framework": null,
+  "redirects": [
+    {
+      "source": "/auth/logout",
+      "destination": "https://auth.taskforceai.chat/api/v1/auth/logout",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/auth/:path*",
+      "destination": "https://auth.taskforceai.chat/api/auth/:path*"
+    },
+    {
+      "source": "/api/v1/auth/:path*",
+      "destination": "https://auth.taskforceai.chat/api/v1/auth/:path*"
+    },
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://api.taskforceai.chat/api/v1/:path*"
+    }
+  ]
+}

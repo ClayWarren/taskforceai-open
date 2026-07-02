@@ -1,0 +1,41 @@
+Contact: mailto:security@taskforceai.chat
+Expires: 2026-10-26T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://taskforceai.chat/.well-known/security.txt
+Policy: https://taskforceai.chat/security-policy
+
+# Security Policy
+
+Thank you for helping keep TaskForceAI secure!
+
+## Reporting Security Issues
+
+If you discover a security vulnerability, please report it via email to security@taskforceai.chat.
+
+Please include:
+- Description of the vulnerability
+- Steps to reproduce the issue
+- Potential impact
+- Suggested fix (if any)
+
+## Response Time
+
+We aim to:
+- Acknowledge receipt within 24 hours
+- Provide an initial assessment within 72 hours
+- Keep you informed of our progress
+
+## Safe Harbor
+
+We consider security research conducted in good faith and in compliance with this policy to be:
+- Authorized in accordance with the Computer Fraud and Abuse Act (CFAA)
+- Exempt from DMCA prohibitions
+- Exempt from restrictions in our Terms of Service that would interfere with security research
+
+## Out of Scope
+
+The following are out of scope:
+- Denial of service attacks
+- Social engineering attacks
+- Physical attacks against our infrastructure
+- Spam or social engineering attacks on our users

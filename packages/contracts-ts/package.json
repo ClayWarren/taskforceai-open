@@ -1,0 +1,45 @@
+{
+  "name": "@taskforceai/contracts",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "schema",
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./index": "./src/index.ts",
+    "./browserClient": "./src/browserClient.ts",
+    "./client": "./src/client.ts",
+    "./hooks": "./src/hooks.ts",
+    "./contracts": "./src/contracts.ts",
+    "./utils/*": "./src/utils/*.ts",
+    "./api/*": "./src/api/*.ts",
+    "./auth/AuthProvider": "./src/auth/AuthProvider.tsx",
+    "./auth/*": "./src/auth/*.ts",
+    "./services/*": "./src/services/*.ts",
+    "./openapi.json": "./schema/openapi.json"
+  },
+  "scripts": {
+    "bench:runtime": "bun benchmarks/runtime-performance.ts",
+    "prepack": "cd ../.. && bun run generate:contracts"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@tanstack/react-query": "^5.101.1",
+    "@taskforceai/shared": "workspace:*",
+    "react": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@babel/runtime": "^7.29.7"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.101.1"
+  }
+}
