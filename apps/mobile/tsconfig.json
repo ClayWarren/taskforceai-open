@@ -1,0 +1,92 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "types": [
+      "jest",
+      "node",
+      "bun-types"
+    ],
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "../../node_modules"
+    ],
+    "paths": {
+      "@taskforceai/locales/*": [
+        "../../packages/ui/ts/locales/*"
+      ],
+      "@taskforceai/client-core/*": [
+        "../../packages/core/ts/client-core/src/*"
+      ],
+      "@taskforceai/client-core": [
+        "../../packages/core/ts/client-core/src/index.ts"
+      ],
+      "@taskforceai/client-runtime": [
+        "../../packages/adapters/ts/client-runtime/src/index.ts"
+      ],
+      "@taskforceai/client-runtime/*": [
+        "../../packages/adapters/ts/client-runtime/src/*"
+      ],
+      "@taskforceai/config": [
+        "../../packages/infrastructure/ts/config/src/index.ts"
+      ],
+      "@taskforceai/config/*": [
+        "../../packages/infrastructure/ts/config/src/*"
+      ],
+      "@taskforceai/browser-runtime": [
+        "../../packages/adapters/ts/browser-runtime/src/index.ts"
+      ],
+      "@taskforceai/browser-runtime/*": [
+        "../../packages/adapters/ts/browser-runtime/src/*"
+      ],
+      "@taskforceai/voice/*": [
+        "../../packages/adapters/ts/voice/src/*"
+      ],
+      "@taskforceai/contracts/*": [
+        "../../packages/contracts/typescript/src/*"
+      ],
+      "@taskforceai/db-sync/*": [
+        "../../packages/infrastructure/ts/db-sync/*"
+      ],
+      "@taskforceai/persistence": [
+        "../../packages/adapters/ts/persistence/src/index.ts"
+      ],
+      "@taskforceai/persistence/*": [
+        "../../packages/adapters/ts/persistence/src/*"
+      ],
+      "@taskforceai/sync-client": [
+        "../../packages/adapters/ts/sync-client/src/index.ts"
+      ],
+      "@taskforceai/sync-client/*": [
+        "../../packages/adapters/ts/sync-client/src/*"
+      ],
+      "@taskforceai/design-tokens/*": [
+        "../../packages/ui/ts/design-tokens/*"
+      ],
+      "@taskforceai/react-core": [
+        "../../packages/ui/ts/react-core/src/index.ts"
+      ],
+      "@taskforceai/react-core/*": [
+        "../../packages/ui/ts/react-core/src/*"
+      ]
+    }
+  },
+  "exclude": [
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "test/**",
+    "**/node_modules/expo-file-system/**"
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
+  ]
+}

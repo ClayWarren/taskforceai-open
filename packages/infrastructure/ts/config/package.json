@@ -1,0 +1,62 @@
+{
+  "name": "@taskforceai/config",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./app-env": {
+      "types": "./src/app-env.ts",
+      "default": "./src/app-env.ts"
+    },
+    "./base-env": {
+      "types": "./src/base-env.ts",
+      "default": "./src/base-env.ts"
+    },
+    "./env": {
+      "types": "./src/env.ts",
+      "default": "./src/env.ts"
+    },
+    "./env-parsing": {
+      "types": "./src/env-parsing.ts",
+      "default": "./src/env-parsing.ts"
+    },
+    "./frontend-security-headers": {
+      "types": "./src/frontend-security-headers.ts",
+      "default": "./src/frontend-security-headers.ts"
+    },
+    "./mobile": {
+      "types": "./src/mobile.ts",
+      "default": "./src/mobile.ts"
+    },
+    "./server": {
+      "types": "./src/server.ts",
+      "default": "./src/server.ts"
+    },
+    "./server-base-url": {
+      "types": "./src/server-base-url.ts",
+      "default": "./src/server-base-url.ts"
+    },
+    "./url-host": {
+      "types": "./src/url-host.ts",
+      "default": "./src/url-host.ts"
+    },
+    "./yaml": {
+      "types": "./src/yaml.ts",
+      "default": "./src/yaml.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@taskforceai/client-core": "workspace:*",
+    "zod": "catalog:"
+  }
+}

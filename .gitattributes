@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+# Mark generated/build artifacts so GitHub ignores them in linguist stats.
+**/dist/** linguist-generated
+**/.next/** linguist-generated
+**/.output/** linguist-generated
+**/generated/** linguist-generated
+**/*generated* linguist-generated

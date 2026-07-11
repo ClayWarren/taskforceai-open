@@ -1,0 +1,29 @@
+{
+  "productName": "TaskForceAI Dev",
+  "identifier": "com.taskforceai.desktop.dev",
+  "app": {
+    "windows": [
+      {
+        "title": "TaskForceAI Dev",
+        "url": "index.html",
+        "width": 1520,
+        "height": 960,
+        "minWidth": 1040,
+        "minHeight": 720,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": true,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "visible": false
+      }
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "active": false
+    }
+  }
+}

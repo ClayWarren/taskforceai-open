@@ -1,0 +1,3 @@
+ALTER TABLE users DROP COLUMN IF EXISTS mfa_verified_at;
+ALTER TABLE users DROP COLUMN IF EXISTS mfa_totp_secret;
+ALTER TABLE users DROP COLUMN IF EXISTS mfa_enabled;

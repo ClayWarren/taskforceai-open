@@ -1,0 +1,21 @@
+{
+  "name": "@taskforceai/db-sync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared conversation/prompt schema artifacts for every TaskForceAI client",
+  "type": "module",
+  "exports": {
+    "./drizzle/schema": "./drizzle/schema.ts"
+  },
+  "scripts": {
+    "bench:generator": "bun benchmarks/generator-performance.ts",
+    "generate": "bun scripts/generate.ts"
+  },
+  "devDependencies": {
+    "@taskforceai/client-core": "workspace:*",
+    "better-sqlite3": "^12.11.1",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "zod": "catalog:"
+  }
+}

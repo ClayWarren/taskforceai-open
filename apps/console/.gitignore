@@ -1,0 +1,8 @@
+.vercel
+.output
+dist
+node_modules
+.env*.local
+
+# Generated from packages/contracts/openapi/openapi.yaml at build time
+public/openapi.yaml

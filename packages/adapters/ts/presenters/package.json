@@ -1,0 +1,25 @@
+{
+  "name": "@taskforceai/presenters",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "dependencies": {
+    "@taskforceai/client-core": "workspace:*",
+    "zod": "catalog:"
+  }
+}

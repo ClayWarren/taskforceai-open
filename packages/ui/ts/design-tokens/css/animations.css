@@ -1,0 +1,103 @@
+/* stylelint-disable at-rule-no-unknown */
+
+@keyframes tfai-enter {
+  from {
+    opacity: var(--tfai-enter-opacity, 1);
+    transform: translate3d(var(--tfai-enter-translate-x, 0), var(--tfai-enter-translate-y, 0), 0)
+      scale3d(var(--tfai-enter-scale, 1), var(--tfai-enter-scale, 1), 1);
+  }
+}
+
+@keyframes tfai-exit {
+  to {
+    opacity: var(--tfai-exit-opacity, 1);
+    transform: translate3d(var(--tfai-exit-translate-x, 0), var(--tfai-exit-translate-y, 0), 0)
+      scale3d(var(--tfai-exit-scale, 1), var(--tfai-exit-scale, 1), 1);
+  }
+}
+
+@utility animate-in {
+  animation-name: tfai-enter;
+  animation-duration: 150ms;
+  --tfai-enter-opacity: initial;
+  --tfai-enter-scale: initial;
+  --tfai-enter-translate-x: initial;
+  --tfai-enter-translate-y: initial;
+}
+
+@utility animate-out {
+  animation-name: tfai-exit;
+  animation-duration: 150ms;
+  --tfai-exit-opacity: initial;
+  --tfai-exit-scale: initial;
+  --tfai-exit-translate-x: initial;
+  --tfai-exit-translate-y: initial;
+}
+
+@utility fade-in {
+  --tfai-enter-opacity: 0;
+}
+
+@utility fade-in-0 {
+  --tfai-enter-opacity: 0;
+}
+
+@utility fade-out {
+  --tfai-exit-opacity: 0;
+}
+
+@utility fade-out-0 {
+  --tfai-exit-opacity: 0;
+}
+
+@utility zoom-in-95 {
+  --tfai-enter-scale: 0.95;
+}
+
+@utility zoom-out-95 {
+  --tfai-exit-scale: 0.95;
+}
+
+@utility slide-in-from-top-2 {
+  --tfai-enter-translate-y: -0.5rem;
+}
+
+@utility slide-in-from-top-4 {
+  --tfai-enter-translate-y: -1rem;
+}
+
+@utility slide-in-from-bottom-2 {
+  --tfai-enter-translate-y: 0.5rem;
+}
+
+@utility slide-in-from-bottom-4 {
+  --tfai-enter-translate-y: 1rem;
+}
+
+@utility slide-in-from-left-half {
+  --tfai-enter-translate-x: -50%;
+}
+
+@utility slide-in-from-left-2 {
+  --tfai-enter-translate-x: -0.5rem;
+}
+
+@utility slide-in-from-right-2 {
+  --tfai-enter-translate-x: 0.5rem;
+}
+
+@utility slide-in-from-top-center {
+  --tfai-enter-translate-y: -48%;
+}
+
+@utility slide-out-to-top-2 {
+  --tfai-exit-translate-y: -0.5rem;
+}
+
+@utility slide-out-to-top-center {
+  --tfai-exit-translate-y: -48%;
+}
+
+@utility slide-out-to-left-half {
+  --tfai-exit-translate-x: -50%;
+}

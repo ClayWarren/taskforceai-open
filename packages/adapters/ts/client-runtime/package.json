@@ -1,0 +1,40 @@
+{
+  "name": "@taskforceai/client-runtime",
+  "version": "1.0.0",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./local-search": {
+      "types": "./src/local-search.ts",
+      "default": "./src/local-search.ts"
+    },
+    "./pending-prompt-queue": {
+      "types": "./src/pending-prompt-queue.ts",
+      "default": "./src/pending-prompt-queue.ts"
+    },
+    "./send-message": {
+      "types": "./src/send-message.ts",
+      "default": "./src/send-message.ts"
+    },
+    "./id": {
+      "types": "./src/id.ts",
+      "default": "./src/id.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@taskforceai/api-client": "workspace:*",
+    "@taskforceai/client-core": "workspace:*",
+    "@taskforceai/contracts": "workspace:*",
+    "@taskforceai/persistence": "workspace:*",
+    "@taskforceai/presenters": "workspace:*",
+    "fuse.js": "^7.4.1",
+    "zustand": "^5.0.14"
+  }
+}

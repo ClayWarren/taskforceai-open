@@ -1,0 +1,14 @@
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/hashicorp/golang-lru v1.0.2 h1:dV3g9Z/unq5DpblPpw+Oqcv4dU/1omnb4Ok8iPY6p1c=
+github.com/hashicorp/golang-lru v1.0.2/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=
+github.com/statsig-io/go-sdk v1.40.1 h1:6DQ6N4AHs7/Q2CCJj1qN7Z7VgKwdhC8NlXOTOGgNTsw=
+github.com/statsig-io/go-sdk v1.40.1/go.mod h1:bPRKzkj3sp/1xmg3KNX54GC9wVr04oowSpxaEqV+eB0=
+github.com/statsig-io/ip3country-go v0.3.0 h1:cW7uvcxw5DprDF/qzoK2VhZ2IraaLSTeDBVlMURaKvA=
+github.com/statsig-io/ip3country-go v0.3.0/go.mod h1:1GiVAjwHE8/figN74OCdXW3zDvSDk+8NPxnT1LwPh04=
+github.com/ua-parser/uap-go v0.0.0-20260529044130-17c35e68e58c h1:XbG4n3OWA1PcRTpbBA22E2ChPLvJCuwYRXO12tIyVL0=
+github.com/ua-parser/uap-go v0.0.0-20260529044130-17c35e68e58c/go.mod h1:gwANdYmo9R8LLwGnyDFWK2PMsaXXX2HhAvCnb/UhZsM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

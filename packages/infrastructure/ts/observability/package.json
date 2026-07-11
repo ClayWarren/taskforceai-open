@@ -1,0 +1,62 @@
+{
+  "name": "@taskforceai/observability",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./sentry-config": {
+      "types": "./src/sentry-config.ts",
+      "default": "./src/sentry-config.ts"
+    },
+    "./sentry-reporter": {
+      "types": "./src/sentry-reporter.ts",
+      "default": "./src/sentry-reporter.ts"
+    },
+    "./sentry-transport": {
+      "types": "./src/sentry-transport.ts",
+      "default": "./src/sentry-transport.ts"
+    },
+    "./browser-client-sentry": {
+      "types": "./src/browser-client-sentry.ts",
+      "default": "./src/browser-client-sentry.ts"
+    },
+    "./metrics": {
+      "types": "./src/metrics.ts",
+      "default": "./src/metrics.ts"
+    },
+    "./logger": {
+      "types": "./src/logger/index.ts",
+      "default": "./src/logger/index.ts"
+    },
+    "./latency-mark": {
+      "types": "./src/latency-mark.ts",
+      "default": "./src/latency-mark.ts"
+    },
+    "./logging/*": {
+      "types": "./src/logging/*.ts",
+      "default": "./src/logging/*.ts"
+    },
+    "./standard-logger": {
+      "types": "./src/standard-logger.ts",
+      "default": "./src/standard-logger.ts"
+    }
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@taskforceai/client-core": "workspace:*",
+    "@taskforceai/system-runtime": "workspace:*",
+    "@tauri-apps/api": "^2.11.1"
+  },
+  "devDependencies": {
+    "@sentry/react": "catalog:",
+    "zod": "catalog:"
+  }
+}
