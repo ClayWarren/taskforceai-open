@@ -1,0 +1,40 @@
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "experimentalTailwindcss": {
+    "stylesheet": "./tailwind.preset.css"
+  },
+  "sort_classes": true,
+  "importOrder": ["^@/(.*)$", "^@shared/(.*)$", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "ignorePatterns": [
+    ".venv*/",
+    "evaluation/results_*",
+    "evaluation/samples_*",
+    "package-lock.json",
+    "mobile/package-lock.json",
+    "apps/src-tauri/gen/schemas/",
+    "apps/src-tauri/target/",
+    "apps/src-tauri/dist_web/",
+    "shared/api/openapi.json",
+    "coverage.json",
+    "python-sdk/.pytest_cache/",
+    "apps/web/next-env.d.ts",
+    "CLAUDE.md",
+    "apps/tui/internal/app/api/generated/",
+    "apps/desktop/openapi-client/",
+    "generated/api-client/",
+    "apps/mobile/app.config.ts",
+    "apps/mobile/App.tsx",
+    "apps/mobile/app/_layout.tsx",
+    "apps/mobile/**",
+    "**/*.html"
+  ]
+}

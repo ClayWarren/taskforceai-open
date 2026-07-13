@@ -1,0 +1,173 @@
+import { buildUserState } from '@taskforceai/api-client/auth/auth-service';
+import type { InitialAuthSnapshot } from '@taskforceai/react-core/auth/AuthProvider';
+import {
+  authenticatedUserSchema,
+  modelSelectorResponseSchema,
+  type AuthenticatedUser,
+  type ModelSelectorResponse,
+} from '@taskforceai/contracts/contracts';
+import { PUBLIC_MODEL_SELECTOR_CATALOG } from '@taskforceai/client-core';
+import { z } from 'zod';
+import { withAbortableTimeout } from '../abortable-timeout';
+
+const BOOTSTRAP_REQUEST_TIMEOUT_MS = 800;
+
+const sessionBootstrapSchema = z.object({
+  user: z
+    .object({
+      name: z.string().nullable().optional(),
+      email: z.string().min(1),
+      image: z.string().nullable().optional(),
+    })
+    .optional(),
+  expires: z.string().optional(),
+});
+
+export interface RootBootstrapSnapshot {
+  auth: InitialAuthSnapshot | null;
+}
+
+export interface HomeBootstrapSnapshot {
+  modelSelector: ModelSelectorResponse | null;
+}
+
+export interface BootstrapRequestContext {
+  origin: string;
+  authorization?: string | null;
+  authTimeoutMs?: number;
+  cookie: string | null;
+  fetchImpl: typeof fetch;
+}
+
+type BootstrapPath = '/api/auth/session' | '/api/v1/auth/me' | '/api/v1/models';
+const withBootstrapTimeout = <T>(
+  run: (signal: AbortSignal) => Promise<T>,
+  timeoutMs = BOOTSTRAP_REQUEST_TIMEOUT_MS
+) => withAbortableTimeout(run, timeoutMs, 'Web shell bootstrap request timed out');
+
+const fetchBootstrapJson = async (
+  context: BootstrapRequestContext,
+  path: BootstrapPath,
+  signal: AbortSignal
+): Promise<unknown> => {
+  const headers = new Headers({ accept: 'application/json' });
+  if (context.authorization) {
+    headers.set('authorization', context.authorization);
+  }
+  if (context.cookie) {
+    headers.set('cookie', context.cookie);
+  }
+
+  const response = await context.fetchImpl(new URL(path, context.origin), {
+    cache: 'no-store',
+    headers,
+    signal,
+  });
+  if (!response.ok) {
+    return null;
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+};
+
+const fetchCurrentUserBootstrap = async (
+  context: BootstrapRequestContext
+): Promise<AuthenticatedUser | null> => {
+  try {
+    return await withBootstrapTimeout(async (signal) => {
+      const payload = await fetchBootstrapJson(context, '/api/v1/auth/me', signal);
+      const parsed = authenticatedUserSchema.safeParse(payload);
+      return parsed.success ? buildUserState(parsed.data) : null;
+    }, context.authTimeoutMs);
+  } catch {
+    return null;
+  }
+};
+
+const fetchSessionUserBootstrap = async (
+  context: BootstrapRequestContext
+): Promise<AuthenticatedUser | null> => {
+  try {
+    return await withBootstrapTimeout(async (signal) => {
+      const payload = await fetchBootstrapJson(context, '/api/auth/session', signal);
+      const parsed = sessionBootstrapSchema.safeParse(payload);
+      if (!parsed.success || !parsed.data.user) {
+        return null;
+      }
+
+      return buildUserState({
+        email: parsed.data.user.email,
+        full_name: parsed.data.user.name ?? null,
+        image: parsed.data.user.image ?? null,
+      });
+    }, context.authTimeoutMs);
+  } catch {
+    return null;
+  }
+};
+
+const loadAuthBootstrap = async (
+  context: BootstrapRequestContext
+): Promise<InitialAuthSnapshot | null> => {
+  if (!context.cookie && !context.authorization) {
+    return {
+      user: null,
+      isAuthenticated: false,
+      sessionStatus: 'unauthenticated',
+    };
+  }
+
+  const [profileUser, sessionUser] = await Promise.all([
+    fetchCurrentUserBootstrap(context),
+    fetchSessionUserBootstrap(context),
+  ]);
+  const user = profileUser ?? sessionUser;
+
+  if (!user) {
+    return {
+      user: null,
+      isAuthenticated: false,
+      sessionStatus: 'unauthenticated',
+    };
+  }
+
+  return {
+    user,
+    isAuthenticated: true,
+    sessionStatus: 'authenticated',
+  };
+};
+
+const loadModelSelectorBootstrap = async (
+  context: BootstrapRequestContext
+): Promise<ModelSelectorResponse | null> => {
+  if (!context.cookie && !context.authorization) {
+    return PUBLIC_MODEL_SELECTOR_CATALOG;
+  }
+
+  try {
+    return await withBootstrapTimeout(async (signal) => {
+      const payload = await fetchBootstrapJson(context, '/api/v1/models', signal);
+      const parsed = modelSelectorResponseSchema.safeParse(payload);
+      return parsed.success ? parsed.data : null;
+    });
+  } catch {
+    return null;
+  }
+};
+
+export const loadRootBootstrapSnapshot = async (
+  context: BootstrapRequestContext
+): Promise<RootBootstrapSnapshot> => ({
+  auth: await loadAuthBootstrap(context),
+});
+
+export const loadHomeBootstrapSnapshot = async (
+  context: BootstrapRequestContext
+): Promise<HomeBootstrapSnapshot> => ({
+  modelSelector: await loadModelSelectorBootstrap(context),
+});

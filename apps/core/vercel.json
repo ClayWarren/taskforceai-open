@@ -1,0 +1,71 @@
+{
+  "framework": null,
+  "builds": [
+    {
+      "src": "apps/core/api/index.go",
+      "use": "@vercel/go"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/v1/cron/pulse",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/v1/cron/status-snapshot",
+      "schedule": "* * * * *"
+    }
+  ],
+  "installCommand": "true",
+  "buildCommand": "true",
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/apps/core/api/index.go?__path=$1"
+    },
+    {
+      "source": "/",
+      "destination": "/apps/core/api/index.go"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/apps/core/api/index.go"
+    },
+    {
+      "source": "/favicon.png",
+      "destination": "/apps/core/api/index.go"
+    },
+    {
+      "source": "/favicon-32x32.png",
+      "destination": "/apps/core/api/index.go"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/apps/core/api/index.go"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/apps/core/api/index.go"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@taskforceai/locales",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "en.json",
+    "es.json"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./en.json": "./en.json",
+    "./es.json": "./es.json"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bun run build:vercel",
+  "installCommand": "script=../../scripts/vercel/install-frontend-deps.ts; [ -f \"$script\" ] || script=scripts/vercel/install-frontend-deps.ts; bun \"$script\"",
+  "framework": null
+}
