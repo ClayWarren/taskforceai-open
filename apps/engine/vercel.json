@@ -1,0 +1,72 @@
+{
+  "framework": null,
+  "builds": [
+    {
+      "src": "apps/engine/api/index.go",
+      "use": "@vercel/go"
+    },
+    {
+      "src": "apps/engine/api/v1/stream.go",
+      "use": "@vercel/go",
+      "config": {
+        "maxDuration": 800
+      }
+    }
+  ],
+  "installCommand": "true",
+  "buildCommand": "true",
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/api/v1/stream/:taskId",
+      "destination": "/apps/engine/api/v1/stream.go"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/apps/engine/api/index.go?__path=$1"
+    },
+    {
+      "source": "/",
+      "destination": "/apps/engine/api/index.go"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/apps/engine/api/index.go"
+    },
+    {
+      "source": "/favicon.png",
+      "destination": "/apps/engine/api/index.go"
+    },
+    {
+      "source": "/favicon-32x32.png",
+      "destination": "/apps/engine/api/index.go"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/apps/engine/api/index.go"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/apps/engine/api/index.go"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

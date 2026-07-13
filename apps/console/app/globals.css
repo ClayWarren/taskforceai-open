@@ -1,0 +1,57 @@
+@import '@fontsource-variable/inter/index.css';
+
+@source './**/*.{js,ts,jsx,tsx}';
+@source '../lib/**/*.{js,ts,jsx,tsx}';
+@source '../config/**/*.{js,ts,jsx,tsx}';
+@source '../../packages/core/ts/client-core/src/**/*.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+@import 'tailwindcss';
+@import '@taskforceai/design-tokens/css/animations.css';
+@import '@taskforceai/design-tokens/css/app-tailwind.css';
+
+:root {
+  --background-color: #000000;
+  --text-color: #f8fafc;
+  --primary-color: #1e40af;
+  --primary-hover: #1e3a8a;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --radius: 0.625rem;
+
+  --background: oklch(0 0 0);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.129 0.042 264.695 / 0.2);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.129 0.042 264.695);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.704 0.04 256.788);
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family:
+    'InterVariable',
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

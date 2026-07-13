@@ -1,0 +1,12 @@
+generatorName: go
+generateApiTests: false
+generateModelTests: false
+additionalProperties:
+  packageName: apiclient
+  enumClassPrefix: true
+  generateInterfaces: true
+  disallowAdditionalPropertiesIfNotPresent: false
+  withGoCodegenComment: false
+  isGoSubmodule: true
+  gitUserId: TaskForceAI
+  gitRepoId: tui/internal/app/api/generated

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "TaskForceAI",
+  "version": "0.9.0",
+  "identifier": "com.taskforceai.desktop",
+  "build": {
+    "beforeBuildCommand": "bun ../../scripts/tauri/prepare-app-server-sidecar.ts",
+    "beforeDevCommand": "",
+    "devUrl": "http://localhost:3210",
+    "frontendDist": "dist_web/client"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "TaskForceAI Desktop",
+        "url": "index.html",
+        "width": 1520,
+        "height": 960,
+        "minWidth": 1040,
+        "minHeight": 720,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": true,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.stripe.com https://*.sentry.io https://cdn.jsdelivr.net https://avatars.githubusercontent.com; font-src 'self' data:; connect-src 'self' ipc://localhost http://ipc.localhost http://localhost:* http://127.0.0.1:* https://*.taskforceai.chat https://taskforceai.chat https://api.vercel.ai wss://api.vercel.ai wss://*.vercel.ai wss://*.vercel.com https://*.stripe.com https://*.ingest.sentry.io https://*.sentry.io; frame-src https://*.stripe.com https://js.stripe.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://www.taskforceai.chat/api/desktop/update/{{target}}-{{arch}}/{{current_version}}"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlBRjMwNzE4OTU0NDE2QjQKUldTMEZrU1ZHQWZ6bXI4WjlKSHR1UTNlUmxpSVBIOTNjbkMzR0UvVGxXdDJaUVR1TDhucFJlVWQK"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": ["macos/authorization-plugins"],
+    "createUpdaterArtifacts": true,
+    "externalBin": ["binaries/taskforceai-app-server"],
+    "macOS": {
+      "entitlements": "macos/entitlements.plist",
+      "exceptionDomain": "",
+      "signingIdentity": null
+    }
+  }
+}

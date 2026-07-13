@@ -1,0 +1,21 @@
+[package]
+name = "taskforceai-app-protocol"
+version = "0.1.0"
+edition = "2021"
+description = "TaskForceAI app-server protocol types"
+authors = ["TaskForceAI"]
+license = "MIT"
+repository = "https://github.com/TaskForceAI"
+rust-version = "1.96.0"
+publish = false
+
+[dependencies]
+serde = {version = "1.0.228", features = ["derive"]}
+serde_json = "1.0.145"
+
+[dev-dependencies]
+criterion = "0.7.0"
+
+[[bench]]
+name = "jsonrpc"
+harness = false

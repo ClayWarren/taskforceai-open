@@ -1,0 +1,55 @@
+[package]
+name = "taskforceai-app-server"
+version = "0.11.6"
+edition = "2021"
+description = "TaskForceAI local app-server runtime"
+authors = ["TaskForceAI"]
+license = "MIT"
+repository = "https://github.com/TaskForceAI"
+rust-version = "1.96.0"
+publish = false
+
+[dependencies]
+base64 = "0.22"
+chrono = {version = "0.4", features = ["serde"]}
+futures-util = "0.3"
+keyring = "3"
+log = "0.4"
+rand = "0.9"
+reqwest = {version = "0.12", features = ["json", "multipart", "rustls-tls", "stream"], default-features = false}
+rustls = {version = "0.23", default-features = false, features = ["ring"]}
+rmcp = {version = "1.8.0", default-features = false, features = [
+  "client",
+  "transport-child-process",
+  "transport-streamable-http-client-reqwest",
+  "reqwest",
+]}
+serde = {version = "1.0.228", features = ["derive"]}
+serde_json = "1.0.145"
+semver = "1.0"
+taskforceai-app-store = {path = "../../packages/infrastructure/rust/app-store"}
+taskforceai-app-protocol = {path = "../../packages/contracts/rust"}
+taskforceai-core = {path = "../../packages/core/rust"}
+thiserror = "1.0"
+tokio = {version = "1.0", features = ["io-std", "io-util", "macros", "rt-multi-thread", "sync", "time"]}
+tokio-tungstenite = {version = "0.28", default-features = false, features = ["connect", "rustls-tls-webpki-roots"]}
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = {version = "3", features = ["apple-native"]}
+
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = {version = "3", features = ["windows-native"]}
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = {version = "3", features = ["crypto-rust", "linux-native-sync-persistent", "vendored"]}
+
+[dev-dependencies]
+rusqlite = {version = "0.32", features = ["bundled"]}
+rmcp = {version = "1.8.0", default-features = false, features = [
+  "client",
+  "elicitation",
+  "server",
+  "transport-child-process",
+  "transport-streamable-http-client-reqwest",
+  "reqwest",
+]}

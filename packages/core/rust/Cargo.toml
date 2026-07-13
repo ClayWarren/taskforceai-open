@@ -1,0 +1,10 @@
+[package]
+name = "taskforceai-core"
+version = "0.1.0"
+edition = "2021"
+description = "TaskForceAI Rust product rules"
+authors = ["TaskForceAI"]
+license = "MIT"
+repository = "https://github.com/TaskForceAI"
+rust-version = "1.96.0"
+publish = false

@@ -1,0 +1,8 @@
+[allowlist]
+description = "Allowlist for test files and dummy secrets"
+paths = [
+  '''(?i).*\.(test|spec)\.(js|jsx|ts|tsx|py|rs)$''',
+  '''(?i).*_test\.go$''',
+  '''(?i)apps/web/prisma/seed\.ts''',
+]
+regexes = ['''(?i)mock-api-key''']

@@ -1,0 +1,25 @@
+@import '@fontsource-variable/inter/index.css';
+
+@source './**/*.{js,ts,jsx,tsx}';
+@source '../../packages/core/ts/client-core/src/**/*.{js,ts,jsx,tsx}';
+@source '../../packages/ui/ts/ui-kit/src/**/*.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+@import 'tailwindcss';
+@import '@taskforceai/design-tokens/css/animations.css';
+@import '@taskforceai/design-tokens/css/app-theme.css';
+@import '@taskforceai/design-tokens/css/app-tailwind.css';
+
+body {
+  font-family:
+    'InterVariable',
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}

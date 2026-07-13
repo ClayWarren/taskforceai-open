@@ -1,0 +1,1469 @@
+openapi: 3.0.0
+info:
+  title: TaskForceAI Developer API
+  version: 1.0.0
+  description: |
+    Multi-agent AI orchestration API powered by **Sentinel**, our core high-reasoning layer.
+
+    ## Authentication
+    Developer API requests require an API key passed via the `x-api-key` header.
+
+    ## Rate Limits
+    Rate limits vary by tier:
+    - **STARTER**: 1,000 requests/hour, 1,000,000 requests/month
+    - **PRO**: 5,000 requests/hour, 10,000,000 requests/month
+    - **ENTERPRISE**: 10,000 requests/hour, 100,000,000 requests/month
+
+    ## Getting Started
+    1. Sign up at [console.taskforceai.chat](https://console.taskforceai.chat)
+    2. Navigate to your dashboard at `https://console.taskforceai.chat`
+    3. Create an API key
+    4. Use the API key in the `x-api-key` header
+
+  contact:
+    name: TaskForceAI Support
+    url: https://taskforceai.chat
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://taskforceai.chat/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Local development server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /v1/attachments/upload:
+    post:
+      summary: Upload a task attachment
+      description: Upload a binary attachment and receive a transient attachment ID for `attachment_ids` on task run requests.
+      operationId: uploadAttachment
+      tags:
+        - Attachments
+      servers:
+        - url: https://engine.taskforceai.chat/api
+          description: Production engine server
+        - url: http://localhost:3006/api
+          description: Local engine server
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Attachment uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentUploadResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/stream/{taskId}:
+    get:
+      summary: Stream task status
+      description: Stream task status updates as server-sent events until the task reaches a terminal state.
+      operationId: streamTaskStatus
+      tags:
+        - Streaming
+      servers:
+        - url: https://engine.taskforceai.chat/api
+          description: Production engine server
+        - url: http://localhost:3006/api
+          description: Local engine server
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID returned from a run endpoint.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Server-sent task status events. Each `data` field contains a TaskState JSON object.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        default:
+          description: Stream setup error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/developer/run:
+    post:
+      summary: Submit a multi-agent task
+      description: |
+        Submit a task to the multi-agent orchestration system powered by **Sentinel**. The system will:
+        1. Decompose your task into specialized questions
+        2. Run parallel agents to research different perspectives
+        3. Synthesize the results into a comprehensive answer
+        4. Stream real-time progress updates when requested
+      operationId: submitTask
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunRequest'
+            example:
+              prompt: Explain the key differences between TypeScript and JavaScript
+              modelId: zai/glm-5.2
+              stream: false
+              options:
+                agentCount: 4
+                autonomyEnabled: false
+      responses:
+        '200':
+          description: Task submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSubmissionResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/status/{taskId}:
+    get:
+      summary: Check task status
+      description: Get the current status and available progress details for a submitted task.
+      operationId: getTaskStatus
+      tags:
+        - Tasks
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID returned from the submit endpoint.
+          schema:
+            type: string
+            example: task_abc123xyz
+      responses:
+        '200':
+          description: Task status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskState'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/results/{taskId}:
+    get:
+      summary: Get task results
+      description: Retrieve the final results of a completed task. Tasks that are not complete yet return `200` with the current `status`.
+      operationId: getTaskResults
+      tags:
+        - Tasks
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID returned from the submit endpoint.
+          schema:
+            type: string
+            example: task_abc123xyz
+      responses:
+        '200':
+          description: Task result or current task status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResultResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/usage:
+    get:
+      summary: Get API usage statistics
+      description: Retrieve aggregate and per-key API usage statistics.
+      operationId: getUsageStatistics
+      tags:
+        - Usage
+      responses:
+        '200':
+          description: Usage statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageStats'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/keys:
+    get:
+      summary: List API keys
+      description: List all API keys for your account.
+      operationId: listAPIKeys
+      tags:
+        - API Keys
+      responses:
+        '200':
+          description: API keys retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeyListResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+    post:
+      summary: Create a new API key
+      description: Generate a new API key for your account. The generated secret is only shown once.
+      operationId: createAPIKey
+      tags:
+        - API Keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAPIKeyRequest'
+            example:
+              tier: STARTER
+      responses:
+        '200':
+          description: API key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAPIKeyResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+    delete:
+      summary: Revoke an API key
+      description: Permanently revoke an API key.
+      operationId: revokeAPIKey
+      tags:
+        - API Keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeAPIKeyRequest'
+      responses:
+        '200':
+          description: API key revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeAPIKeyResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/threads:
+    get:
+      summary: List threads
+      description: List the first page of conversation threads available to the Developer API.
+      operationId: listThreads
+      tags:
+        - Threads
+      responses:
+        '200':
+          description: Threads retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadListResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+    post:
+      summary: Create a thread
+      description: Create a new conversation thread.
+      operationId: createThread
+      tags:
+        - Threads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateThreadRequest'
+      responses:
+        '200':
+          description: Thread created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/threads/{threadId}:
+    get:
+      summary: Get a thread
+      description: Retrieve a thread by ID.
+      operationId: getThread
+      tags:
+        - Threads
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Thread retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/threads/{threadId}/messages:
+    get:
+      summary: List thread messages
+      description: List messages in a conversation thread.
+      operationId: getThreadMessages
+      tags:
+        - Threads
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadMessagesResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/threads/{threadId}/runs:
+    post:
+      summary: Run a task in a thread
+      description: Submit a prompt in the context of an existing thread.
+      operationId: runInThread
+      tags:
+        - Threads
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadRunRequest'
+      responses:
+        '200':
+          description: Thread run submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSubmissionResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/files:
+    get:
+      summary: List files
+      description: List files uploaded to the Developer API.
+      operationId: listFiles
+      tags:
+        - Files
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Files retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileListResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+    post:
+      summary: Upload a file
+      description: Upload a durable file using multipart form data.
+      operationId: uploadFile
+      tags:
+        - Files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+                  default: assistants
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/files/upload-token:
+    post:
+      summary: Create a direct upload token
+      description: Create a token for direct durable file upload.
+      operationId: createFileUploadToken
+      tags:
+        - Files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileUploadTokenRequest'
+      responses:
+        '200':
+          description: Upload token created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadTokenResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/files/complete:
+    post:
+      summary: Complete a direct upload
+      description: Finalize metadata for a direct durable file upload.
+      operationId: completeFileUpload
+      tags:
+        - Files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteFileUploadRequest'
+      responses:
+        '200':
+          description: File upload completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/files/{fileId}:
+    get:
+      summary: Get file metadata
+      description: Retrieve file metadata by ID.
+      operationId: getFile
+      tags:
+        - Files
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          $ref: '#/components/responses/Problem'
+
+    delete:
+      summary: Delete a file
+      description: Delete a file by ID.
+      operationId: deleteFile
+      tags:
+        - Files
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteFileResponse'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/files/{fileId}/content:
+    get:
+      summary: Download file content
+      description: Download file bytes by ID.
+      operationId: downloadFile
+      tags:
+        - Files
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /v1/developer/storage:
+    get:
+      summary: Get storage summary
+      description: Retrieve current file storage usage and quota details.
+      operationId: getStorageSummary
+      tags:
+        - Storage
+      responses:
+        '200':
+          description: Storage summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageSummary'
+        default:
+          $ref: '#/components/responses/Problem'
+
+components:
+  responses:
+    Problem:
+      description: Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for authentication. Get yours from the console at https://console.taskforceai.chat
+
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      description: RFC 7807 problem detail returned by Huma handlers.
+      properties:
+        type:
+          type: string
+          format: uri
+          default: about:blank
+        title:
+          type: string
+          example: Bad Request
+        status:
+          type: integer
+          format: int64
+          example: 400
+        detail:
+          type: string
+          example: Property foo is required but is missing.
+        instance:
+          type: string
+          format: uri
+        errors:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      properties:
+        location:
+          type: string
+          description: Where the error occurred, such as `body.items[3].tags`.
+        message:
+          type: string
+          description: Error message text.
+        value:
+          description: The value at the given location.
+
+    RateLimitError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+
+    AttachmentUploadResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - mime_type
+        - size
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the uploaded attachment.
+          example: u:123:550e8400-e29b-41d4-a716-446655440000
+        mime_type:
+          type: string
+          description: Detected MIME type.
+          example: image/png
+        size:
+          type: integer
+          format: int64
+          description: Size in bytes.
+          example: 34219
+
+    RunRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          description: The task or question you want answered.
+          minLength: 1
+          maxLength: 10000
+          example: Explain the key differences between TypeScript and JavaScript
+        modelId:
+          type: string
+          description: Model identifier.
+          default: zai/glm-5.2
+          minLength: 1
+          example: zai/glm-5.2
+        stream:
+          type: boolean
+          description: Whether to stream response updates.
+          default: false
+          example: false
+        options:
+          type: object
+          description: Additional orchestration options forwarded to the task runtime.
+          additionalProperties: true
+          properties:
+            agentCount:
+              type: integer
+              description: Number of parallel agents to use.
+              default: 4
+              minimum: 1
+              maximum: 8
+            silent:
+              type: boolean
+              description: Suppress task logging where supported.
+              default: false
+            mock:
+              type: boolean
+              description: Request mock task behavior for local testing where supported.
+              default: false
+            autonomyEnabled:
+              type: boolean
+              description: Enable autonomous organization-mode execution.
+              default: false
+            budget:
+              type: number
+              format: double
+              description: Optional USD budget for autonomous organization-mode execution.
+              minimum: 0
+        attachment_ids:
+          type: array
+          nullable: true
+          description: Optional attachment IDs returned by `/v1/attachments/upload`.
+          maxItems: 5
+          items:
+            type: string
+
+    ThreadRunRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+        modelId:
+          type: string
+          default: zai/glm-5.2
+          minLength: 1
+        stream:
+          type: boolean
+          default: false
+
+    TaskSubmissionResponse:
+      type: object
+      additionalProperties:
+        type: string
+      required:
+        - taskId
+        - status
+      properties:
+        taskId:
+          type: string
+          example: task_abc123xyz
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+
+    TaskStatus:
+      type: string
+      enum:
+        - processing
+        - completed
+        - failed
+        - canceled
+        - awaiting_approval
+
+    TaskState:
+      type: object
+      additionalProperties: false
+      required:
+        - taskId
+        - status
+        - userId
+        - options
+      properties:
+        taskId:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        userId:
+          type: integer
+          format: int64
+        prompt:
+          type: string
+        modelId:
+          type: string
+        started:
+          type: boolean
+        result:
+          type: string
+        error:
+          type: string
+        updatedAt:
+          type: integer
+          format: int64
+        progressVersion:
+          type: integer
+          format: int64
+        conversationId:
+          type: integer
+          format: int32
+        traceId:
+          type: string
+        options:
+          type: object
+          additionalProperties: true
+        agentStatuses:
+          type: array
+          nullable: true
+          items:
+            type: object
+            additionalProperties: true
+        toolEvents:
+          type: array
+          nullable: true
+          items:
+            type: object
+            additionalProperties: true
+        pendingApproval:
+          $ref: '#/components/schemas/PendingApproval'
+        budgetUsage:
+          $ref: '#/components/schemas/BudgetUsage'
+
+    PendingApproval:
+      type: object
+      additionalProperties: false
+      properties:
+        approvalId:
+          type: string
+        permission:
+          type: string
+        agentName:
+          type: string
+        patterns:
+          type: array
+          nullable: true
+          items:
+            type: string
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+
+    BudgetUsage:
+      type: object
+      additionalProperties: false
+      properties:
+        initialUsd:
+          type: number
+          format: double
+        consumedUsd:
+          type: number
+          format: double
+        remainingUsd:
+          type: number
+          format: double
+
+    TaskResultResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        taskId:
+          type: string
+          description: Present when the task is completed.
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        result:
+          type: string
+          description: Present when the task is completed.
+
+    UsageStats:
+      type: object
+      additionalProperties: false
+      required:
+        - totalRequests
+        - requestsThisMonth
+        - requestsThisWeek
+        - requestsToday
+        - monthlyQuota
+        - monthlyRemaining
+        - periodStart
+        - periodEnd
+        - apiKeys
+        - usageHistory
+      properties:
+        totalRequests:
+          type: integer
+          format: int64
+        requestsThisMonth:
+          type: integer
+          format: int64
+        requestsThisWeek:
+          type: integer
+          format: int64
+        requestsToday:
+          type: integer
+          format: int64
+        monthlyQuota:
+          type: integer
+          format: int64
+        monthlyRemaining:
+          type: integer
+          format: int64
+        periodStart:
+          type: string
+          nullable: true
+        periodEnd:
+          type: string
+          nullable: true
+        apiKeys:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/APIKeyUsage'
+        usageHistory:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/UsageHistoryEntry'
+
+    APIKeyUsage:
+      type: object
+      additionalProperties: false
+      required:
+        - keyId
+        - displayKey
+        - tier
+        - createdAt
+        - lastUsedAt
+        - revokedAt
+        - hourlyLimit
+        - monthlyQuota
+        - currentHourlyUsage
+        - dailyUsage
+        - weeklyUsage
+        - monthlyUsage
+      properties:
+        keyId:
+          type: integer
+          format: int64
+        displayKey:
+          type: string
+        tier:
+          $ref: '#/components/schemas/APIKeyTier'
+        createdAt:
+          type: string
+        lastUsedAt:
+          type: string
+          nullable: true
+        revokedAt:
+          type: string
+          nullable: true
+        hourlyLimit:
+          type: integer
+          format: int64
+        monthlyQuota:
+          type: integer
+          format: int64
+        currentHourlyUsage:
+          type: integer
+          format: int64
+        dailyUsage:
+          type: integer
+          format: int64
+        weeklyUsage:
+          type: integer
+          format: int64
+        monthlyUsage:
+          type: integer
+          format: int64
+
+    UsageHistoryEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - date
+        - count
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+          format: int64
+
+    APIKeyTier:
+      type: string
+      enum:
+        - STARTER
+        - PRO
+        - ENTERPRISE
+
+    APIKeyListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - keys
+      properties:
+        keys:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/APIKey'
+
+    APIKey:
+      type: object
+      additionalProperties: false
+      required:
+        - keyId
+        - displayKey
+        - tier
+        - rateLimit
+        - monthlyQuota
+        - createdAt
+        - lastUsedAt
+        - revokedAt
+      properties:
+        keyId:
+          type: integer
+          format: int64
+        displayKey:
+          type: string
+          example: tfai_abc12...xyz9
+        tier:
+          $ref: '#/components/schemas/APIKeyTier'
+        rateLimit:
+          type: integer
+          format: int64
+        monthlyQuota:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateAPIKeyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        tier:
+          $ref: '#/components/schemas/APIKeyTier'
+
+    CreateAPIKeyResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        message:
+          type: string
+          example: Key created
+        apiKey:
+          type: string
+          description: The generated API key, only shown once.
+          example: tfai_abc123xyz789
+        warning:
+          type: string
+          example: Save it now.
+
+    RevokeAPIKeyRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - keyId
+      properties:
+        keyId:
+          type: integer
+          format: int64
+
+    RevokeAPIKeyResponse:
+      type: object
+      additionalProperties:
+        type: string
+      properties:
+        message:
+          type: string
+          example: Key revoked
+
+    CreateThreadRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          description: Optional thread title.
+
+    Thread:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - timestamp
+        - user_input
+        - result
+        - execution_time
+        - model
+        - agent_count
+        - sources
+        - agentStatuses
+        - toolEvents
+      properties:
+        id:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+        user_input:
+          type: string
+        result:
+          type: string
+        execution_time:
+          type: integer
+          format: int64
+        model:
+          type: string
+        agent_count:
+          type: integer
+          format: int64
+        sources:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        agentStatuses:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/AgentStatus'
+        toolEvents:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ToolUsageEvent'
+
+    SourceReference:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        snippet:
+          type: string
+
+    AgentStatus:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          type: string
+        agent_id:
+          type: integer
+          format: int64
+        progress:
+          type: number
+          format: double
+        result:
+          type: string
+        reasoning:
+          type: string
+        model:
+          type: string
+
+    ToolUsageEvent:
+      type: object
+      additionalProperties: true
+      properties:
+        timestamp:
+          type: string
+        agentId:
+          type: integer
+          format: int64
+        agentLabel:
+          type: string
+        toolName:
+          type: string
+        success:
+          type: boolean
+        durationMs:
+          type: integer
+          format: int64
+        resultPreview:
+          type: string
+        error:
+          type: string
+
+    ThreadListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - conversations
+        - total
+        - limit
+        - offset
+        - has_more
+      properties:
+        conversations:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/Thread'
+        total:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+        has_more:
+          type: boolean
+
+    ThreadMessage:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - message_id
+        - thread_id
+        - role
+        - content
+        - is_agent_status
+        - rating
+      properties:
+        id:
+          type: integer
+          format: int32
+        message_id:
+          type: string
+        thread_id:
+          type: integer
+          format: int32
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+            - system
+        content:
+          type: string
+        is_agent_status:
+          type: boolean
+        elapsed_seconds:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        error:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        tool_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolUsageEvent'
+        agent_statuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentStatus'
+        updated_at:
+          type: string
+          format: date-time
+        rating:
+          type: integer
+          format: int32
+
+    ThreadMessagesResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ThreadMessage'
+        truncated:
+          type: boolean
+
+    File:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - object
+        - bytes
+        - created_at
+        - filename
+        - purpose
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        bytes:
+          type: integer
+          format: int64
+        created_at:
+          type: integer
+          format: int64
+        filename:
+          type: string
+        purpose:
+          type: string
+        mime_type:
+          type: string
+
+    FileListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - files
+        - total
+        - limit
+        - offset
+      properties:
+        files:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/File'
+        total:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+          format: int64
+        offset:
+          type: integer
+          format: int64
+
+    FileUploadTokenRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - filename
+      properties:
+        filename:
+          type: string
+        mime_type:
+          type: string
+        purpose:
+          type: string
+
+    FileUploadTokenResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - file_id
+        - upload_url
+        - upload_token
+        - pathname
+        - expires_at
+        - max_bytes
+      properties:
+        file_id:
+          type: string
+        upload_url:
+          type: string
+        upload_token:
+          type: string
+        pathname:
+          type: string
+        expires_at:
+          type: integer
+          format: int64
+        max_bytes:
+          type: integer
+          format: int64
+
+    CompleteFileUploadRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - file_id
+        - pathname
+        - filename
+      properties:
+        file_id:
+          type: string
+        pathname:
+          type: string
+        filename:
+          type: string
+        mime_type:
+          type: string
+        purpose:
+          type: string
+
+    DeleteFileResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        deleted:
+          type: boolean
+
+    StorageCategory:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - label
+        - bytes
+        - count
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        bytes:
+          type: integer
+          format: int64
+        count:
+          type: integer
+          format: int64
+
+    StorageSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - usedBytes
+        - quotaBytes
+        - categories
+      properties:
+        usedBytes:
+          type: integer
+          format: int64
+        quotaBytes:
+          type: integer
+          format: int64
+        categories:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/StorageCategory'
+
+tags:
+  - name: Tasks
+    description: Task submission and management
+  - name: Attachments
+    description: Transient task attachment upload
+  - name: Streaming
+    description: Server-sent task status updates
+  - name: Usage
+    description: API usage statistics
+  - name: API Keys
+    description: API key management
+  - name: Threads
+    description: Conversation thread management
+  - name: Files
+    description: Durable file upload, metadata, and download operations
+  - name: Storage
+    description: Developer file storage usage
