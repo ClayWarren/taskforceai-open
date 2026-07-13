@@ -1,0 +1,65 @@
+{
+  "framework": null,
+  "builds": [
+    {
+      "src": "apps/billing/api/index.go",
+      "use": "@vercel/go"
+    }
+  ],
+  "installCommand": "true",
+  "buildCommand": "true",
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/apps/billing/api/index.go?__path=$1"
+    },
+    {
+      "source": "/",
+      "destination": "/apps/billing/api/index.go"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/apps/billing/api/index.go"
+    },
+    {
+      "source": "/favicon.png",
+      "destination": "/apps/billing/api/index.go"
+    },
+    {
+      "source": "/favicon-32x32.png",
+      "destination": "/apps/billing/api/index.go"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/apps/billing/api/index.go"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/apps/billing/api/index.go"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

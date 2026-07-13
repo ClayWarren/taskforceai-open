@@ -1,0 +1,42 @@
+{
+  "name": "@taskforceai/browser-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./browser-actions": {
+      "types": "./src/browser-actions.ts",
+      "default": "./src/browser-actions.ts"
+    },
+    "./browser-storage": {
+      "types": "./src/browser-storage.ts",
+      "default": "./src/browser-storage.ts"
+    },
+    "./cookies": {
+      "types": "./src/cookies.ts",
+      "default": "./src/cookies.ts"
+    },
+    "./file": {
+      "types": "./src/file.ts",
+      "default": "./src/file.ts"
+    },
+    "./runtime": {
+      "types": "./src/runtime.ts",
+      "default": "./src/runtime.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@taskforceai/client-core": "workspace:*",
+    "@taskforceai/presenters": "workspace:*"
+  }
+}

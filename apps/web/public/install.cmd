@@ -1,0 +1,148 @@
+@echo off
+setlocal EnableDelayedExpansion
+
+:: TaskForceAI CLI Installer for Windows CMD
+:: Usage: curl -fsSL https://taskforceai.chat/install.cmd -o install.cmd && install.cmd && del install.cmd
+
+set "REPO=ClayWarren/taskforceai-open"
+set "BINARY_NAME=taskforceai.exe"
+set "APP_SERVER_BINARY_NAME=taskforceai-app-server.exe"
+set "INSTALL_DIR=%LOCALAPPDATA%\taskforceai\bin"
+
+echo ==^> Detecting system...
+
+:: Detect Architecture
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+    set "ARCH=amd64"
+) else if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+    set "ARCH=arm64"
+) else (
+    echo Error: Unsupported architecture: %PROCESSOR_ARCHITECTURE%
+    exit /b 1
+)
+
+echo ==^> Detected: windows/%ARCH%
+
+:: Get Latest Version
+echo ==^> Fetching latest version...
+
+if defined TASKFORCEAI_VERSION (
+    set "VERSION=%TASKFORCEAI_VERSION%"
+    echo ==^> Using specified version: !VERSION!
+) else (
+    for /f "tokens=*" %%i in ('curl -fsSL https://api.github.com/repos/%REPO%/releases/latest ^| findstr "tag_name"') do (
+        set "TAG_LINE=%%i"
+    )
+    if "!TAG_LINE!"=="" (
+        echo Error: Failed to fetch latest version.
+        exit /b 1
+    )
+    :: Extract version from JSON "tag_name": "v0.10.1",
+    set "VERSION=!TAG_LINE:*:=!"
+    set "VERSION=!VERSION: =!"
+    set "VERSION=!VERSION:"=!"
+    set "VERSION=!VERSION:,=!"
+    echo ==^> Latest version: !VERSION!
+)
+
+:: Construct URLs
+set "ARCHIVE_NAME=taskforceai-cli-windows-%ARCH%.zip"
+set "DOWNLOAD_URL=https://github.com/%REPO%/releases/download/!VERSION!/%ARCHIVE_NAME%"
+set "CHECKSUMS_URL=https://github.com/%REPO%/releases/download/!VERSION!/cli-checksums.txt"
+set "TEMP_DIR=%TEMP%\taskforceai_install_%RANDOM%"
+set "ZIP_PATH=%TEMP_DIR%\%ARCHIVE_NAME%"
+set "CHECKSUMS_PATH=%TEMP_DIR%\cli-checksums.txt"
+
+mkdir "%TEMP_DIR%" 2>nul
+
+echo ==^> Downloading %ARCHIVE_NAME%...
+curl -fsSL "%DOWNLOAD_URL%" -o "%ZIP_PATH%"
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to download %DOWNLOAD_URL%
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+echo ==^> Verifying checksum...
+curl -fsSL "%CHECKSUMS_URL%" -o "%CHECKSUMS_PATH%"
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to download checksum file %CHECKSUMS_URL%
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+for /f "usebackq delims=" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$archive=$env:ARCHIVE_NAME; $path=$env:CHECKSUMS_PATH; Get-Content -LiteralPath $path | ForEach-Object { if ($_ -match '^([A-Fa-f0-9]{64})\s+\*?(?:\.\\|\./)?(.+)$' -and $Matches[2] -eq $archive) { $Matches[1]; exit 0 } }"`) do (
+    set "EXPECTED_CHECKSUM=%%A"
+)
+if "!EXPECTED_CHECKSUM!"=="" (
+    echo Error: Could not find checksum for %ARCHIVE_NAME%
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+for /f "skip=1 tokens=*" %%A in ('certutil -hashfile "%ZIP_PATH%" SHA256') do (
+    if not defined ACTUAL_CHECKSUM set "ACTUAL_CHECKSUM=%%A"
+)
+if "!ACTUAL_CHECKSUM!"=="" (
+    echo Error: Failed to compute SHA256 checksum
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+if /I not "!ACTUAL_CHECKSUM!"=="!EXPECTED_CHECKSUM!" (
+    echo Error: Checksum verification failed
+    echo Expected: !EXPECTED_CHECKSUM!
+    echo Actual:   !ACTUAL_CHECKSUM!
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+echo ==^> Checksum verified.
+
+echo ==^> Extracting...
+powershell -Command "Expand-Archive -Path '%ZIP_PATH%' -DestinationPath '%TEMP_DIR%' -Force"
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to extract archive
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+echo ==^> Installing to %INSTALL_DIR%...
+if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+
+if exist "%TEMP_DIR%\%BINARY_NAME%" (
+    move /y "%TEMP_DIR%\%BINARY_NAME%" "%INSTALL_DIR%\" >nul
+) else if exist "%TEMP_DIR%\taskforceai-windows-%ARCH%.exe" (
+    move /y "%TEMP_DIR%\taskforceai-windows-%ARCH%.exe" "%INSTALL_DIR%\%BINARY_NAME%" >nul
+) else (
+    echo Error: Could not find binary in extracted files
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+if exist "%TEMP_DIR%\%APP_SERVER_BINARY_NAME%" (
+    move /y "%TEMP_DIR%\%APP_SERVER_BINARY_NAME%" "%INSTALL_DIR%\" >nul
+) else if exist "%TEMP_DIR%\taskforceai-app-server-windows-%ARCH%.exe" (
+    move /y "%TEMP_DIR%\taskforceai-app-server-windows-%ARCH%.exe" "%INSTALL_DIR%\%APP_SERVER_BINARY_NAME%" >nul
+) else (
+    echo Error: Could not find app-server binary in extracted files
+    rmdir /s /q "%TEMP_DIR%"
+    exit /b 1
+)
+
+:: Cleanup
+rmdir /s /q "%TEMP_DIR%"
+
+echo ==^> TaskForceAI CLI installed successfully!
+
+:: Check PATH
+echo %PATH% | findstr /C:"%INSTALL_DIR%" >nul
+if %ERRORLEVEL% neq 0 (
+    echo Warning: %INSTALL_DIR% is not in your PATH.
+    echo Adding to PATH...
+    setx PATH "%PATH%;%INSTALL_DIR%"
+    echo ==^> Added to PATH. You may need to restart your terminal.
+)
+
+echo.
+echo Run 'taskforceai --help' to get started

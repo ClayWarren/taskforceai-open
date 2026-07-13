@@ -1,0 +1,896 @@
+use super::*;
+
+#[tokio::test]
+async fn command_execute_sets_default_model_for_submitted_runs() {
+    let mut runtime = AppRuntime::new(RuntimeConfig::default());
+    let model = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/model set zai/glm-5.2".to_string(),
+            })
+            .await
+            .expect("model command should succeed"),
+    );
+    assert_eq!(model["handled"], true);
+
+    let response = runtime
+        .run_submit(submit_run_params("use default model"))
+        .await
+        .expect("submit should succeed");
+    let AppResponse::WithEvents { result, .. } = response else {
+        panic!("expected response with events");
+    };
+    assert_eq!(result["run"]["modelId"], "zai/glm-5.2");
+}
+
+#[tokio::test]
+async fn model_methods_manage_shared_selector_state() {
+    let mut runtime = AppRuntime::new(RuntimeConfig::default());
+    let list = result_value(runtime.model_list().await.expect("model list should work"));
+
+    assert_eq!(list["enabled"], true);
+    assert_eq!(list["remoteCatalog"], false);
+    assert!(
+        list["options"]
+            .as_array()
+            .expect("models should list")
+            .len()
+            >= 3
+    );
+
+    let selected = result_value(
+        runtime
+            .model_select(ModelSelectParams {
+                model_id: "gpt-5".to_string(),
+            })
+            .await
+            .expect("model select should work"),
+    );
+    assert_eq!(selected["selectedModelId"], "gpt-5");
+
+    let reset = result_value(
+        runtime
+            .model_reset()
+            .await
+            .expect("model reset should work"),
+    );
+    assert_eq!(reset["selectedModelId"], serde_json::Value::Null);
+}
+
+#[tokio::test]
+async fn project_use_sets_default_project_for_submitted_runs() {
+    let mut runtime = AppRuntime::new(RuntimeConfig::default());
+    let selected = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project use 42".to_string(),
+            })
+            .await
+            .expect("project command should succeed"),
+    );
+    assert_eq!(selected["handled"], true);
+
+    let response = runtime
+        .run_submit(submit_run_params("use active project"))
+        .await
+        .expect("submit should succeed");
+    let AppResponse::WithEvents { result, .. } = response else {
+        panic!("expected response with events");
+    };
+    assert_eq!(result["run"]["projectId"], 42);
+
+    let cleared = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project clear".to_string(),
+            })
+            .await
+            .expect("project clear should succeed"),
+    );
+    assert_eq!(cleared["handled"], true);
+    assert_eq!(
+        runtime
+            .active_project_id()
+            .expect("active project should parse"),
+        None
+    );
+}
+
+#[tokio::test]
+async fn project_methods_cover_local_empty_auth_and_remote_api_flows() {
+    let mut local_runtime = AppRuntime::new(RuntimeConfig::default());
+    local_runtime
+        .project_use(ProjectIDParams { project_id: 77 })
+        .expect("project use should persist active id");
+    let unauthenticated = result_value(
+        local_runtime
+            .project_list()
+            .await
+            .expect("unauthenticated project list should be empty"),
+    );
+    assert_eq!(unauthenticated["activeProjectId"], 77);
+    assert_eq!(
+        unauthenticated["projects"]
+            .as_array()
+            .expect("projects should be an array")
+            .len(),
+        0
+    );
+    let empty_name = local_runtime
+        .project_create(ProjectCreateParams {
+            name: "   ".to_string(),
+            description: None,
+            custom_instructions: None,
+            workspace_roots: Vec::new(),
+        })
+        .await
+        .expect_err("empty project name should fail");
+    assert_eq!(empty_name.code, -32602);
+    let invalid_id = local_runtime
+        .project_use(ProjectIDParams { project_id: 0 })
+        .expect_err("zero project id should fail");
+    assert_eq!(invalid_id.code, -32602);
+    let unauth_create = local_runtime
+        .project_create(ProjectCreateParams {
+            name: "No Auth".to_string(),
+            description: None,
+            custom_instructions: None,
+            workspace_roots: Vec::new(),
+        })
+        .await
+        .expect_err("project create should require auth");
+    assert_eq!(unauth_create.code, -32010);
+    let unauth_delete = local_runtime
+        .project_delete(ProjectIDParams { project_id: 77 })
+        .await
+        .expect_err("project delete should require auth");
+    assert_eq!(unauth_delete.code, -32010);
+
+    let (base_url, server, requests) = start_recording_response_sequence_server(vec![
+        json_response(
+            json!([
+                {
+                    "id": 12,
+                    "name": "Research",
+                    "description": "Lab work",
+                    "customInstructions": "Be precise",
+                    "createdAt": "2026-01-02T03:04:05Z"
+                }
+            ])
+            .to_string(),
+        ),
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response(
+            json!({
+                "id": 13,
+                "name": "New Project",
+                "description": "Drafts",
+                "customInstructions": "Ship tests",
+                "createdAt": "2026-02-03T04:05:06Z"
+            })
+            .to_string(),
+        ),
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response("{}".to_string()),
+    ]);
+    let mut runtime = AppRuntime::new(RuntimeConfig {
+        api_base_url: base_url,
+        ..RuntimeConfig::default()
+    });
+    set_auth_token(&mut runtime, "token");
+    runtime
+        .project_use(ProjectIDParams { project_id: 12 })
+        .expect("active project should persist");
+
+    let listed = result_value(
+        runtime
+            .project_list()
+            .await
+            .expect("project list should work"),
+    );
+    assert_eq!(listed["activeProjectId"], 12);
+    assert_eq!(listed["projects"][0]["name"], "Research");
+    let created = result_value(
+        runtime
+            .project_create(ProjectCreateParams {
+                name: "  New Project  ".to_string(),
+                description: Some("Drafts".to_string()),
+                custom_instructions: Some("Ship tests".to_string()),
+                workspace_roots: Vec::new(),
+            })
+            .await
+            .expect("project create should work"),
+    );
+    assert_eq!(created["project"]["id"], 13);
+    assert_eq!(created["project"]["name"], "New Project");
+    let deleted = result_value(
+        runtime
+            .project_delete(ProjectIDParams { project_id: 12 })
+            .await
+            .expect("project delete should work"),
+    );
+    assert_eq!(deleted["ok"], true);
+    assert_eq!(
+        runtime
+            .active_project_id()
+            .expect("active project should parse"),
+        None
+    );
+
+    server.join().expect("mock project server should exit");
+    let requests = requests.lock().expect("requests should be recorded");
+    assert_eq!(requests[0].method, "GET");
+    assert_eq!(requests[0].path, "/projects");
+    assert_eq!(requests[2].method, "POST");
+    assert_eq!(requests[2].path, "/projects");
+    let create_body: Value =
+        serde_json::from_str(&requests[2].body).expect("create body should be json");
+    assert_eq!(create_body["name"], "New Project");
+    assert_eq!(requests[4].method, "DELETE");
+    assert_eq!(requests[4].path, "/projects/12");
+}
+
+#[tokio::test]
+async fn project_command_covers_status_create_delete_and_usage() {
+    let mut local_runtime = AppRuntime::new(RuntimeConfig::default());
+    let local_status = result_value(
+        local_runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project status".to_string(),
+            })
+            .await
+            .expect("local project status should work"),
+    );
+    assert!(local_status["message"]
+        .as_str()
+        .expect("message should be string")
+        .contains("No remote projects available"));
+    let missing_create_name = result_value(
+        local_runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project create".to_string(),
+            })
+            .await
+            .expect("missing project create name returns usage"),
+    );
+    assert_eq!(missing_create_name["handled"], false);
+    let bad_use = local_runtime
+        .command_execute(CommandExecuteParams {
+            input: "/project use nope".to_string(),
+        })
+        .await
+        .expect_err("bad project id should fail");
+    assert!(bad_use.message.contains("project id must be an integer"));
+    let unknown = result_value(
+        local_runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project wat".to_string(),
+            })
+            .await
+            .expect("unknown project command should return usage"),
+    );
+    assert_eq!(unknown["handled"], false);
+
+    let (base_url, server, requests) = start_recording_response_sequence_server(vec![
+        json_response(
+            json!([
+                {
+                    "id": 21,
+                    "name": "Ops",
+                    "description": null,
+                    "customInstructions": null,
+                    "createdAt": "2026-03-04T05:06:07Z"
+                }
+            ])
+            .to_string(),
+        ),
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response(
+            json!({
+                "id": 22,
+                "name": "New Ops",
+                "description": null,
+                "customInstructions": null,
+                "createdAt": "2026-03-05T06:07:08Z"
+            })
+            .to_string(),
+        ),
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response("{}".to_string()),
+    ]);
+    let mut runtime = AppRuntime::new(RuntimeConfig {
+        api_base_url: base_url,
+        ..RuntimeConfig::default()
+    });
+    set_auth_token(&mut runtime, "token");
+    runtime
+        .project_use(ProjectIDParams { project_id: 21 })
+        .expect("active project should persist");
+
+    let remote_status = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/projects ls".to_string(),
+            })
+            .await
+            .expect("remote project list command should work"),
+    );
+    assert!(remote_status["message"]
+        .as_str()
+        .expect("message should be string")
+        .contains("* 21: Ops"));
+    let created = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project create New Ops".to_string(),
+            })
+            .await
+            .expect("project create command should work"),
+    );
+    assert_eq!(created["message"], "Created project 22: New Ops");
+    let deleted = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/project delete 22".to_string(),
+            })
+            .await
+            .expect("project delete command should work"),
+    );
+    assert_eq!(deleted["message"], "Deleted project 22.");
+
+    server
+        .join()
+        .expect("mock project command server should exit");
+    let requests = requests.lock().expect("requests should be recorded");
+    assert_eq!(requests[0].path, "/projects");
+    assert_eq!(requests[2].path, "/projects");
+    assert_eq!(requests[4].path, "/projects/22");
+}
+
+#[tokio::test]
+async fn auth_status_tracks_cached_token_and_logout_clears_it() {
+    use base64::Engine as _;
+
+    fn token_with_claims(claims: Value) -> String {
+        let header = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(r#"{"alg":"none"}"#);
+        let payload = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(claims.to_string());
+        format!("{header}.{payload}.sig")
+    }
+
+    let mut runtime = AppRuntime::new(RuntimeConfig::default());
+    set_auth_token(
+        &mut runtime,
+        &token_with_claims(json!({
+            "id": 42,
+            "email": "ops@example.com",
+            "full_name": "Ops User",
+            "picture": "https://example.com/avatar.png"
+        })),
+    );
+
+    let authenticated = result_value(runtime.auth_status());
+    assert_eq!(authenticated["authenticated"], true);
+    assert_eq!(authenticated["user"]["id"], "42");
+    assert_eq!(authenticated["user"]["email"], "ops@example.com");
+    assert_eq!(authenticated["user"]["fullName"], "Ops User");
+    assert_eq!(
+        authenticated["user"]["image"],
+        "https://example.com/avatar.png"
+    );
+    assert!(authenticated.get("token").is_none());
+
+    set_auth_token(
+        &mut runtime,
+        &token_with_claims(json!({
+            "id": "user-42",
+            "email": "named@example.com",
+            "name": "Named User",
+            "image": "https://example.com/named.png"
+        })),
+    );
+    let named = result_value(runtime.auth_status());
+    assert_eq!(named["user"]["id"], "user-42");
+    assert_eq!(named["user"]["fullName"], "Named User");
+    assert_eq!(named["user"]["image"], "https://example.com/named.png");
+
+    set_auth_token(&mut runtime, &token_with_claims(json!({})));
+    let empty_claims = result_value(runtime.auth_status());
+    assert_eq!(empty_claims["authenticated"], true);
+    assert_eq!(empty_claims["user"], Value::Null);
+
+    let logout = result_value(
+        runtime
+            .command_execute(CommandExecuteParams {
+                input: "/logout".to_string(),
+            })
+            .await
+            .expect("logout command should succeed"),
+    );
+    assert_eq!(logout["handled"], true);
+    let unauthenticated = result_value(runtime.auth_status());
+    assert_eq!(unauthenticated["authenticated"], false);
+    assert!(unauthenticated.get("token").is_none());
+}
+
+#[tokio::test]
+async fn api_health_reports_remote_status_and_base_url() {
+    let (base_url, server, requests) =
+        start_recording_response_sequence_server(vec![json_response("{}".to_string())]);
+    let runtime = AppRuntime::new(RuntimeConfig {
+        api_base_url: base_url.clone(),
+        ..RuntimeConfig::default()
+    });
+
+    let health = result_value(
+        runtime
+            .api_health()
+            .await
+            .expect("api health should succeed"),
+    );
+
+    assert_eq!(health["healthy"], true);
+    assert_eq!(health["status"], 200);
+    assert_eq!(health["baseUrl"], base_url);
+    server.join().expect("mock health server should exit");
+    assert_eq!(
+        requests.lock().expect("requests should be recorded")[0].path,
+        "/health"
+    );
+}
+
+#[tokio::test]
+async fn device_login_poll_stores_approved_access_token() {
+    let (base_url, server, requests) = start_recording_response_sequence_server(vec![
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response(
+            json!({
+                "device_code": "device-123",
+                "user_code": "ABCD",
+                "verification_uri": "https://example.com/device",
+                "verification_uri_complete": "https://example.com/device?user_code=ABCD",
+                "expires_in": 600,
+                "interval": 5
+            })
+            .to_string(),
+        ),
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response(
+            json!({
+                "status": "approved",
+                "access_token": "approved-token",
+                "accessToken": "approved-token",
+                "expires_in": 3600
+            })
+            .to_string(),
+        ),
+    ]);
+    let mut runtime = AppRuntime::new(RuntimeConfig {
+        api_base_url: base_url,
+        ..RuntimeConfig::default()
+    });
+
+    let started = result_value(
+        runtime
+            .auth_device_start()
+            .await
+            .expect("device login should start"),
+    );
+    assert_eq!(started["deviceCode"], "device-123");
+    let polled = result_value(
+        runtime
+            .auth_device_poll(DeviceLoginPollParams {
+                device_code: "device-123".to_string(),
+            })
+            .await
+            .expect("device login should poll"),
+    );
+    assert_eq!(polled["status"], "approved");
+    assert_eq!(polled["token"], "approved-token");
+    assert_eq!(result_value(runtime.auth_status())["authenticated"], true);
+    assert_eq!(
+        result_value(
+            runtime
+                .metadata_get(MetadataGetParams {
+                    key: "auth_token".to_string(),
+                })
+                .expect("auth token should be readable")
+        )["value"],
+        "approved-token"
+    );
+    server.join().expect("mock auth server should exit");
+
+    let requests = requests.lock().expect("requests should be recorded");
+    assert_eq!(requests[1].path, "/auth/device/start");
+    assert_eq!(requests[3].path, "/auth/device/token");
+    let body: Value = serde_json::from_str(&requests[3].body).expect("poll body should be json");
+    assert_eq!(body["device_code"], "device-123");
+}
+
+#[tokio::test]
+async fn device_login_approved_without_token_keeps_existing_auth() {
+    let (base_url, server, _requests) = start_recording_response_sequence_server(vec![
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response(json!({ "status": "approved", "expires_in": 60 }).to_string()),
+    ]);
+    let mut runtime = AppRuntime::new(RuntimeConfig {
+        api_base_url: base_url,
+        ..RuntimeConfig::default()
+    });
+    set_auth_token(&mut runtime, "existing-token");
+
+    let polled = result_value(
+        runtime
+            .auth_device_poll(DeviceLoginPollParams {
+                device_code: "device-123".to_string(),
+            })
+            .await
+            .expect("approved poll without token should not replace auth"),
+    );
+
+    assert_eq!(polled["status"], "approved");
+    assert_eq!(
+        result_value(
+            runtime
+                .metadata_get(MetadataGetParams {
+                    key: "auth_token".to_string(),
+                })
+                .expect("auth token should be readable")
+        )["value"],
+        "existing-token"
+    );
+    server.join().expect("mock auth server should exit");
+}
+
+#[tokio::test]
+async fn device_login_pending_does_not_replace_existing_token() {
+    let (base_url, server, _requests) = start_recording_response_sequence_server(vec![
+        MockHttpResponse {
+            body: json!({ "csrfToken": "test-csrf" }).to_string(),
+            headers: vec![("Set-Cookie", "csrf_token=test-csrf; Path=/")],
+        },
+        json_response(json!({ "status": "pending", "interval": 5 }).to_string()),
+    ]);
+    let mut runtime = AppRuntime::new(RuntimeConfig {
+        api_base_url: base_url,
+        ..RuntimeConfig::default()
+    });
+    set_auth_token(&mut runtime, "existing-token");
+
+    let polled = result_value(
+        runtime
+            .auth_device_poll(DeviceLoginPollParams {
+                device_code: "device-123".to_string(),
+            })
+            .await
+            .expect("pending device login should poll"),
+    );
+
+    assert_eq!(polled["status"], "pending");
+    assert_eq!(
+        result_value(
+            runtime
+                .metadata_get(MetadataGetParams {
+                    key: "auth_token".to_string(),
+                })
+                .expect("auth token should be readable")
+        )["value"],
+        "existing-token"
+    );
+    server.join().expect("mock auth server should exit");
+}
+
+#[test]
+fn auth_token_is_not_persisted_to_plaintext_metadata_store() {
+    let store_path = test_store_path("auth-token-restart");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::new(None)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config).expect("runtime should start");
+
+    runtime.set_auth_token(Some("persisted-token")).unwrap();
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        Some("persisted-token")
+    );
+    assert_ne!(
+        runtime
+            .metadata_value("auth_token")
+            .expect("metadata should read")
+            .as_deref(),
+        Some("persisted-token")
+    );
+    assert_store_file_does_not_contain_auth_token(&store_path, "persisted-token");
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_reloads_from_keychain_after_restart() {
+    let store_path = test_store_path("auth-token-keychain-restart");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::new(None)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config.clone()).expect("runtime should start");
+
+    runtime.set_auth_token(Some("persisted-token")).unwrap();
+    assert_store_file_does_not_contain_auth_token(&store_path, "persisted-token");
+    drop(runtime);
+
+    let restarted = AppRuntime::try_new(config).expect("runtime should restart");
+    assert_eq!(
+        restarted
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        Some("persisted-token")
+    );
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_clear_removes_keychain_and_runtime_state() {
+    let store_path = test_store_path("auth-token-keychain-clear");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::new(None)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config.clone()).expect("runtime should start");
+
+    runtime.set_auth_token(Some("persisted-token")).unwrap();
+    runtime.set_auth_token(None).unwrap();
+    assert_eq!(runtime.auth_token().expect("auth token should read"), None);
+    drop(runtime);
+
+    let restarted = AppRuntime::try_new(config).expect("runtime should restart");
+    assert_eq!(
+        restarted.auth_token().expect("auth token should read"),
+        None
+    );
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_stays_in_memory_when_keychain_write_cannot_be_verified() {
+    let store_path = test_store_path("auth-token-keychain-fallback");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::with_failures(None, false, true, false)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config.clone()).expect("runtime should start");
+
+    runtime.set_auth_token(Some("fallback-token")).unwrap();
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        Some("fallback-token")
+    );
+    assert_ne!(
+        runtime
+            .metadata_value("auth_token")
+            .expect("metadata should read")
+            .as_deref(),
+        Some("fallback-token")
+    );
+    assert_store_file_does_not_contain_auth_token(&store_path, "fallback-token");
+    drop(runtime);
+
+    let restarted = AppRuntime::try_new(config).expect("runtime should restart");
+    assert_eq!(
+        restarted
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        None
+    );
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_clears_legacy_metadata_fallback_on_startup() {
+    let store_path = test_store_path("auth-token-keychain-legacy-cleanup");
+    let mut legacy_runtime = AppRuntime::try_new(RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::Memory,
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    })
+    .expect("legacy runtime should start");
+    legacy_runtime
+        .set_metadata_value("auth_token", "metadata-token")
+        .expect("legacy metadata token should persist");
+    drop(legacy_runtime);
+
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::with_failures(None, true, false, false)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let runtime = AppRuntime::try_new(config).expect("runtime should start");
+
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        None
+    );
+    assert_ne!(
+        runtime
+            .metadata_value("auth_token")
+            .expect("metadata should read")
+            .as_deref(),
+        Some("metadata-token")
+    );
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_ignores_metadata_fallback_when_keychain_read_fails() {
+    let store_path = test_store_path("auth-token-keychain-read-ignore-fallback");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::with_failures(None, true, false, false)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config).expect("runtime should start");
+
+    runtime
+        .set_metadata_value("auth_token", "metadata-token")
+        .expect("metadata token should persist");
+
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        None
+    );
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_stays_in_memory_when_keychain_replacement_fails() {
+    let store_path = test_store_path("auth-token-keychain-delete-fallback");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::with_failures(None, false, true, true)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config).expect("runtime should start");
+
+    runtime.set_auth_token(Some("fallback-token")).unwrap();
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        Some("fallback-token")
+    );
+    assert_ne!(
+        runtime
+            .metadata_value("auth_token")
+            .expect("metadata should read")
+            .as_deref(),
+        Some("fallback-token")
+    );
+    assert_store_file_does_not_contain_auth_token(&store_path, "fallback-token");
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_token_stays_in_memory_when_keychain_readback_fails() {
+    let store_path = test_store_path("auth-token-keychain-readback-fallback");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::with_failures(None, true, false, false)),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config).expect("runtime should start");
+
+    runtime.set_auth_token(Some("fallback-token")).unwrap();
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should read")
+            .as_deref(),
+        Some("fallback-token")
+    );
+    assert_ne!(
+        runtime
+            .metadata_value("auth_token")
+            .expect("metadata should read")
+            .as_deref(),
+        Some("fallback-token")
+    );
+    assert_store_file_does_not_contain_auth_token(&store_path, "fallback-token");
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+#[test]
+fn auth_logout_reports_keychain_delete_failure_and_keeps_runtime_authenticated() {
+    let store_path = test_store_path("auth-token-keychain-logout-delete-failure");
+    let config = RuntimeConfig {
+        auth_token_storage: AuthTokenStorage::KeyringWithMemoryFallback,
+        auth_keychain: Some(TestAuthKeychain::with_failures(
+            Some("persisted-token"),
+            false,
+            false,
+            true,
+        )),
+        ..RuntimeConfig::default().with_run_store_path(&store_path)
+    };
+    let mut runtime = AppRuntime::try_new(config.clone()).expect("runtime should start");
+
+    let error = runtime
+        .auth_logout()
+        .expect_err("failed keychain deletion should fail logout");
+    assert!(error
+        .message
+        .contains("failed to delete desktop auth token"));
+    assert_eq!(
+        runtime
+            .auth_token()
+            .expect("auth token should remain readable")
+            .as_deref(),
+        Some("persisted-token")
+    );
+    drop(runtime);
+
+    let restarted = AppRuntime::try_new(config).expect("runtime should restart");
+    assert_eq!(
+        restarted
+            .auth_token()
+            .expect("persisted token should still be readable")
+            .as_deref(),
+        Some("persisted-token")
+    );
+
+    let _ = std::fs::remove_file(store_path);
+}
+
+fn assert_store_file_does_not_contain_auth_token(store_path: &std::path::Path, token: &str) {
+    let bytes = std::fs::read(store_path).unwrap_or_default();
+    assert!(
+        !bytes
+            .windows(token.len())
+            .any(|window| window == token.as_bytes()),
+        "SQLite metadata store should not contain auth token bytes"
+    );
+}

@@ -1,0 +1,8 @@
+# Tarpaulin/llvm-cov configuration for desktop native coverage.
+# Product runtime and persistence coverage live in apps/app-server.
+
+[report]
+out = ["Html", "Stdout"]
+
+[coverage]
+exclude = ["src/main.rs"]

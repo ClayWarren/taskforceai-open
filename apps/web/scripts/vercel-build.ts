@@ -1,0 +1,81 @@
+#!/usr/bin/env bun
+import { buildFrontendContentSecurityPolicy } from '@taskforceai/config/frontend-security-headers';
+import {
+  buildVercelOutput,
+  filesystemRoute,
+  handleBuildFailure,
+  iconCacheRoute,
+  iconResponseHeader,
+  reactFunctionPackageJSON,
+  responseHeaderRoute,
+  route,
+  securityHeaderRoute,
+  serverlessFallbackRoute,
+  staticAssetRoutes,
+} from '../../../scripts/vercel/build-output';
+import {
+  authLogoutRedirect,
+  buildOutputWebApiRoutes,
+  docsRoute,
+  marketingRoute,
+  serviceRoute,
+} from '../../../scripts/vercel/routes';
+
+const webContentSecurityPolicy = buildFrontendContentSecurityPolicy('web', {
+  environment: 'production',
+});
+
+const marketingRedirectRoutes: [string, string?][] = [
+  ['/sitemap.xml'],
+  ['/benchmarks'],
+  ['/home'],
+  ['/pricing'],
+  ['/enterprise'],
+  ['/about'],
+  ['/downloads'],
+  ['/mobile'],
+  ['/sdk'],
+  ['/terms'],
+  ['/privacy'],
+  ['/blog'],
+  ['/blog/(.*)', '/blog/$1'],
+  ['/changelog'],
+  ['/changelog/(.*)', '/changelog/$1'],
+  ['/company'],
+  ['/help'],
+  ['/help/(.*)', '/help/$1'],
+  ['/support'],
+];
+
+buildVercelOutput({
+  appName: 'TanStack Start',
+  clientCandidates: ['dist/client', '.output/public'],
+  serverCandidates: ['.output/server', 'dist/server'],
+  outputConfig: {
+    version: 3,
+    headers: [iconResponseHeader()],
+    routes: [
+      securityHeaderRoute({ contentSecurityPolicy: false, frameOptions: false }),
+      responseHeaderRoute('/((?!api/).*)', {
+        'Content-Security-Policy': webContentSecurityPolicy,
+        'X-Frame-Options': 'DENY',
+      }),
+      ...staticAssetRoutes(),
+      iconCacheRoute(),
+      authLogoutRedirect(),
+      ...marketingRedirectRoutes.map(([src, dest]) => marketingRoute(src, dest)),
+      docsRoute('/api-docs'),
+      docsRoute('/docs'),
+      docsRoute('/docs/(.*)', '/docs/$1'),
+      route('/api/og', '/index'),
+      ...buildOutputWebApiRoutes(),
+      marketingRoute('/icon-48.webp'),
+      filesystemRoute(),
+      serviceRoute('/_build/(.*)', 'marketing', '/_build/$1'),
+      serviceRoute('/assets/(.*)', 'marketing', '/_build/$1'),
+      serviceRoute('/videos/(.*)', 'marketing', '/videos/$1'),
+      serverlessFallbackRoute(),
+    ],
+  },
+  functionPackageJSON: reactFunctionPackageJSON(),
+}).catch(handleBuildFailure);

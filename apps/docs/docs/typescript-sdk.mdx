@@ -1,0 +1,65 @@
+---
+title: 'TypeScript SDK'
+description: 'Official TypeScript client for TaskForceAI'
+---
+
+The TaskForceAI TypeScript SDK provides a type-safe way to interact with our platform from Node.js or browser environments.
+
+The package README is the canonical reference for constructor options, streaming helpers, mock mode, and error handling. This page stays intentionally short so the SDK reference only has one detailed source of truth.
+
+## Canonical Reference
+
+- Package README: [packages/sdk/typescript/README.md](https://github.com/TaskForceAI/taskforceai/blob/main/packages/sdk/typescript/README.md)
+- REST API reference: [/docs/api](/docs/api)
+
+## Installation
+
+```bash
+bun add taskforceai-sdk
+```
+
+The package also runs in Node.js 18 or newer when installed with another package manager in downstream projects.
+
+## Quick Start
+
+```typescript
+import { TaskForceAI } from 'taskforceai-sdk';
+
+const client = new TaskForceAI({
+  apiKey: 'your-api-key',
+});
+
+// Run a task and wait for the result
+const result = await client.runTask('Analyze this repository');
+console.log(result.result);
+```
+
+## Common Workflow
+
+Run the task, or switch to streaming when you want incremental status updates:
+
+```typescript
+const stream = await client.runTaskStream('Complex analysis task');
+
+for await (const status of stream) {
+  console.log(`${status.status}: ${status.result ?? '...'}`);
+}
+```
+
+## Files and Threads
+
+The SDK also exposes the current Developer API helpers for uploaded files and persistent conversation threads:
+
+```typescript
+const file = await client.uploadFile('brief.txt', new Blob(['Context for the run']));
+
+const thread = await client.createThread({ title: 'Security review' });
+await client.runInThread(thread.id, {
+  prompt: 'Review the uploaded brief and summarize the risks.',
+});
+
+const files = await client.listFiles();
+const messages = await client.getThreadMessages(thread.id);
+```
+
+Use `uploadAttachment()` for task-scoped images that should be submitted as transient `attachment_ids`; use `uploadFile()` for persistent Developer API files.

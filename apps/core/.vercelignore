@@ -1,0 +1,12 @@
+# Ignore non-essential files for Go serverless deployment
+**/node_modules
+**/dist
+**/build
+**/.next
+**/.turbo
+**/coverage
+**/*_test.go
+**/playwright
+**/tests
+# Exclude local dev server - Vercel should only use api/*.go
+**/cmd

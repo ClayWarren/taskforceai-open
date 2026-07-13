@@ -1,0 +1,61 @@
+# TaskForceAI
+
+> TaskForceAI is a multi-agent AI orchestration platform powered by **Sentinel**, our core intelligence layer that coordinates specialized AI agents to solve complex problems through parallel processing and intelligent synthesis.
+
+## Overview
+
+TaskForceAI uses a "wisdom of crowds" methodology where multiple independent AI agents — directed by **Sentinel** — process prompts in parallel, with results synthesized and validated for more reliable outputs than single-model approaches.
+
+## How It Works
+
+1. **Parallel Processing**: Four specialized agents receive identical prompts and reason independently
+2. **Synthesis**: Results are combined and analyzed to find common patterns and insights
+3. **Validation**: A validator agent reviews and verifies the synthesized output
+4. **Delivery**: Final answer is streamed back with full transparency and traceability
+
+## Key Features
+
+- Multi-agent orchestration with parallel execution
+- Streaming responses for real-time output
+- Type-safe SDKs for TypeScript, Python, Go, and Rust
+- Available on web, desktop (macOS/Windows/Linux), mobile (iOS/Android), and CLI
+- Enterprise-grade infrastructure with automatic retries and error handling
+- Full traceability of agent responses
+
+## Documentation
+
+- Main Documentation: https://docs.taskforceai.chat/docs
+- API Reference: https://docs.taskforceai.chat/docs/api
+- TypeScript SDK: https://docs.taskforceai.chat/docs/typescript-sdk
+- Go SDK: https://docs.taskforceai.chat/docs/go-sdk
+- Rust SDK: https://docs.taskforceai.chat/docs/rust-sdk
+- Python SDK: https://docs.taskforceai.chat/docs/python-sdk
+- CLI Documentation: https://docs.taskforceai.chat/docs/cli
+- Desktop App: https://docs.taskforceai.chat/docs/desktop
+
+## Links
+
+- Website: https://www.taskforceai.chat/home
+- Pricing: https://www.taskforceai.chat/pricing
+- Downloads: https://www.taskforceai.chat/downloads
+- About: https://www.taskforceai.chat/about
+- Changelog: https://www.taskforceai.chat/changelog
+- Blog: https://www.taskforceai.chat/blog
+
+## Contact
+
+- Email: hello@taskforceai.chat
+- Twitter: @taskforceai
+
+## Pricing Tiers
+
+- Free: Limited usage for exploration
+- Pro: Enhanced limits for individuals and small teams
+- Enterprise: Custom limits and dedicated support
+
+## Technical Details
+
+- RESTful API with OpenAPI specification
+- WebSocket support for real-time streaming
+- OAuth 2.0 and API key authentication
+- Rate limiting with configurable quotas

@@ -1,0 +1,159 @@
+{
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/.vercel/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/out/**",
+    "apps/desktop/target/**",
+    "apps/web/.next/**",
+    "generated/**",
+    "coverage/**",
+    "**/.bun-cache/**",
+    "**/tsconfig.json"
+  ],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "plugins": ["react", "unicorn", "typescript", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    "complexity": ["error", { "max": 20, "variant": "classic" }],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/no-array-index-key": "off",
+    "react/no-object-type-as-default-prop": "off",
+    "react/jsx-no-constructed-context-values": "off",
+    "no-empty": ["error", { "allowEmptyCatch": false }],
+    "no-underscore-dangle": "off",
+    "no-warning-comments": "error",
+    "no-useless-catch": "error",
+    "unicorn/consistent-function-scoping": "off",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-implied-eval": "error",
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-unsafe-type-assertion": "off",
+    "@typescript-eslint/no-misused-promises": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/consistent-return": "off",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/no-unnecessary-type-conversion": "off",
+    "typescript/no-unnecessary-type-parameters": "off",
+    "@typescript-eslint/unbound-method": "error",
+    "@typescript-eslint/no-base-to-string": "error",
+    "@typescript-eslint/strict-boolean-expressions": "off",
+    "node/no-process-env": "error"
+  },
+  "overrides": [
+    {
+      "files": [
+        "tests/**/*",
+        "qa/**/*",
+        "scripts/**/*",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "apps/mobile/shims/**/*",
+        "apps/mobile/test/**/*",
+        "apps/mobile/e2e/**/*"
+      ],
+      "rules": {
+        "complexity": "off",
+        "no-await-in-loop": "off",
+        "@typescript-eslint/await-thenable": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unsafe-type-assertion": "off",
+        "@typescript-eslint/no-floating-promises": "off",
+        "@typescript-eslint/no-misused-promises": "off",
+        "@typescript-eslint/unbound-method": "off",
+        "@typescript-eslint/no-redundant-type-constituents": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/**/sync/**/*",
+        "apps/**/api/**/sync/**/*",
+        "apps/**/api/**/rate-limiter*.ts",
+        "apps/**/api/cache*.ts",
+        "apps/web/app/lib/hooks/usePendingPrompts.ts",
+        "apps/mobile/src/hooks/usePendingPromptQueue.ts",
+        "apps/mobile/src/sync/**/*",
+        "apps/mobile/src/qa/**/*",
+        "packages/core/ts/src/agent*.ts",
+        "packages/core/ts/src/cache.ts",
+        "packages/core/ts/src/tools/**/*",
+        "packages/sdk/typescript/**/*",
+        "packages/core/ts/client-core/src/utils.ts",
+        "packages/core/ts/client-core/src/utils/async.ts",
+        "packages/infrastructure/ts/db-sync/scripts/**/*"
+      ],
+      "rules": {
+        "no-await-in-loop": "off"
+      }
+    },
+    {
+      "files": [
+        "packages/core/ts/src/utils/rate-limiter.ts",
+        "apps/mobile/src/__tests__/theme-storage.test.ts",
+        "apps/mobile/src/__tests__/mockData.test.ts"
+      ],
+      "rules": {
+        "no-await-in-loop": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/web/lib/db-health.test.ts",
+        "apps/web/lib/circuit-breaker.test.ts",
+        "apps/web/lib/audit-logger.ts"
+      ],
+      "rules": {
+        "no-await-in-loop": "off"
+      }
+    },
+    {
+      "files": ["apps/mobile/test/bun-setup.ts"],
+      "rules": {
+        "@typescript-eslint/no-extraneous-class": "off"
+      }
+    },
+    {
+      "files": [
+        "scripts/**/*",
+        "playwright.config.ts",
+        "apps/web/proxy.ts",
+        "apps/web/instrumentation.ts",
+        "apps/web/vercel.ts",
+        "apps/web/sentry.edge.config.ts",
+        "apps/web/sentry.server.config.ts",
+        "**/*.config.ts",
+        "**/*.config.mts",
+        "**/*.config.cts",
+        "**/*.config.js",
+        "**/*.config.cjs",
+        "**/*.config.mjs"
+      ],
+      "rules": {
+        "node/no-process-env": "off"
+      }
+    }
+  ]
+}
