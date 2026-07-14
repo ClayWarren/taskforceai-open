@@ -1,0 +1,14 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "../../..",
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "composite": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "src/**/*.bench.ts"]
+}

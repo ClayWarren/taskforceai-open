@@ -1,0 +1,3 @@
+# The developer console is authenticated and should not be indexed.
+User-agent: *
+Disallow: /

@@ -1,0 +1,535 @@
+import { renderHook, act, waitFor } from '@testing-library/react-native';
+
+import { queryKeys } from '../../hooks/api/queryKeys';
+import { useChatCoordinator } from '../../hooks/useChatCoordinator';
+
+const mockPush = jest.fn();
+const mockInvalidateQueries = jest.fn(async () => undefined);
+const mockTriggerRunTask = jest.fn(async () => ({ task_id: 'task-1' }));
+const mockResetStreamingState = jest.fn();
+const mockHandleSendMessage = jest.fn(async () => undefined);
+const mockUsePendingPromptQueue = jest.fn();
+const mockHandleClearCache = jest.fn(async () => undefined);
+const mockEnsureConversation = jest.fn(async () => undefined);
+const mockUpsertMessage = jest.fn(async () => undefined);
+const mockDeleteMessage = jest.fn(async () => undefined);
+const mockMcpManager = {} as any;
+const mockMcpToolCatalog = {
+  toolSummary: { totalCount: 0, enabledCount: 0, disabledCount: 0 },
+  items: [],
+};
+const mockRequestAiDataSharingConsent = jest.fn(async () => true);
+
+let mockIsAuthenticated = true;
+let mockIsOnline = true;
+
+const mockConversationState = {
+  messages: [] as Array<{ id: string; role: string; content: string }>,
+  conversationId: 'conv-1' as string | null,
+  ensureActiveConversation: jest.fn(async () => 'conv-1'),
+  setMessages: jest.fn(),
+  addUserMessage: jest.fn(async () => undefined),
+  handleNewChat: jest.fn(async () => undefined),
+  loadConversation: jest.fn(async () => undefined),
+};
+const mockUseConversationState = jest.fn(() => mockConversationState);
+
+const mockStreamingStore = {
+  isStreaming: false,
+  streamContent: '',
+  agentStatuses: [],
+  elapsedSeconds: 0,
+  sources: [],
+  finalSources: [],
+  toolEvents: [],
+  finalToolEvents: [],
+  finalResponse: null,
+  errorMessage: null as string | null,
+  computerUseEnabled: true,
+  modelLabel: 'openai/gpt-5.6-sol',
+  startStreaming: jest.fn(async () => undefined),
+  clearErrorMessage: jest.fn(),
+  reset: jest.fn(),
+  setErrorMessage: jest.fn(),
+};
+
+let capturedMessageSenderOptions: any;
+
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+jest.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({ isAuthenticated: mockIsAuthenticated }),
+}));
+
+jest.mock('../../contexts/SyncContext', () => ({
+  useSync: () => ({ isOnline: mockIsOnline }),
+}));
+
+jest.mock('../../hooks/useConversationState', () => ({
+  useConversationState: (...args: unknown[]) => mockUseConversationState(...args),
+}));
+
+jest.mock('../../streaming/useStreamingStore', () => ({
+  useStreamingStore: () => mockStreamingStore,
+}));
+
+jest.mock('../../hooks/api/runTask', () => ({
+  useRunTaskMutation: () => ({ mutateAsync: mockTriggerRunTask }),
+}));
+
+jest.mock('../../hooks/useCacheMaintenance', () => ({
+  useCacheMaintenance: () => ({ handleClearCache: mockHandleClearCache }),
+}));
+
+jest.mock('../../hooks/useStreamingMessages', () => ({
+  useStreamingMessages: jest.fn(() => ({ resetStreamingState: mockResetStreamingState })),
+}));
+
+jest.mock('../../hooks/useMessageSender', () => ({
+  useMessageSender: jest.fn((options) => {
+    capturedMessageSenderOptions = options;
+    return { handleSendMessage: mockHandleSendMessage };
+  }),
+}));
+
+jest.mock('../../hooks/usePendingPromptQueue', () => ({
+  usePendingPromptQueue: (...args: unknown[]) => mockUsePendingPromptQueue(...args),
+}));
+
+jest.mock('../../mcp/useMcpToolCatalog', () => ({
+  useMobileMcpToolCatalog: () => ({
+    manager: mockMcpManager,
+    snapshot: mockMcpToolCatalog,
+  }),
+}));
+
+jest.mock('../../privacy/aiDataConsent', () => ({
+  requestAiDataSharingConsent: () => mockRequestAiDataSharingConsent(),
+}));
+
+jest.mock('../../storage/chat-local-mobile', () => ({
+  ensureConversation: (...args: unknown[]) => mockEnsureConversation(...args),
+  upsertMessage: (...args: unknown[]) => mockUpsertMessage(...args),
+  deleteMessage: (...args: unknown[]) => mockDeleteMessage(...args),
+}));
+
+describe('useChatCoordinator', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsAuthenticated = true;
+    mockIsOnline = true;
+    mockConversationState.messages = [];
+    mockConversationState.conversationId = 'conv-1';
+    mockStreamingStore.isStreaming = false;
+    mockStreamingStore.streamContent = '';
+    mockStreamingStore.finalResponse = null;
+    mockStreamingStore.errorMessage = null;
+    mockUseConversationState.mockClear();
+    mockRequestAiDataSharingConsent.mockResolvedValue(true);
+    capturedMessageSenderOptions = undefined;
+  });
+
+  it('opens and closes sidebar via handlers', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    expect(result.current.isSidebarVisible).toBe(false);
+
+    await act(() => {
+      result.current.handleOpenSidebar();
+    });
+    expect(result.current.isSidebarVisible).toBe(true);
+
+    await act(() => {
+      result.current.handleCloseSidebar();
+    });
+    expect(result.current.isSidebarVisible).toBe(false);
+  });
+
+  it('navigates to login route when handleLogin is called', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(() => {
+      result.current.handleLogin();
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/login');
+  });
+
+  it('resets stream state, starts a new chat, clears errors, and closes sidebar', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(() => {
+      result.current.handleOpenSidebar();
+    });
+    expect(result.current.isSidebarVisible).toBe(true);
+
+    await act(async () => {
+      await result.current.handleNewChat();
+    });
+
+    expect(mockResetStreamingState).toHaveBeenCalledTimes(1);
+    expect(mockConversationState.handleNewChat).toHaveBeenCalledTimes(1);
+    expect(mockStreamingStore.clearErrorMessage).toHaveBeenCalledTimes(1);
+    expect(result.current.isSidebarVisible).toBe(false);
+  });
+
+  it('loads selected conversation and closes sidebar', async () => {
+    const summary = { id: 42, model: 'remote-42' } as any;
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(() => {
+      result.current.handleOpenSidebar();
+    });
+    expect(result.current.isSidebarVisible).toBe(true);
+
+    await act(async () => {
+      await result.current.handleConversationSelect(summary);
+    });
+
+    expect(mockConversationState.loadConversation).toHaveBeenCalledWith(summary);
+    expect(result.current.isSidebarVisible).toBe(false);
+  });
+
+  it('passes pending prompt invalidation callback into message sender', async () => {
+    await renderHook(() => useChatCoordinator());
+
+    await act(async () => {
+      await capturedMessageSenderOptions.invalidatePendingPrompts();
+    });
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: queryKeys.pendingPrompts,
+    });
+  });
+
+  it('passes narrow runtime adapters into the message sender', async () => {
+    await renderHook(() => useChatCoordinator());
+
+    expect(capturedMessageSenderOptions.conversation).toEqual(
+      expect.objectContaining({
+        onSendMessage: mockConversationState.addUserMessage,
+        ensureActiveConversation: mockConversationState.ensureActiveConversation,
+        ensureConversationId: mockConversationState.ensureActiveConversation,
+        setMessages: mockConversationState.setMessages,
+      })
+    );
+    expect(capturedMessageSenderOptions.streaming).toEqual({
+      startStreaming: mockStreamingStore.startStreaming,
+      clearErrorMessage: mockStreamingStore.clearErrorMessage,
+      setErrorMessage: mockStreamingStore.setErrorMessage,
+    });
+  });
+
+  it('registers pending prompt queue with streaming and connectivity state', async () => {
+    mockStreamingStore.isStreaming = true;
+    mockIsOnline = false;
+
+    await renderHook(() => useChatCoordinator());
+
+    expect(mockUsePendingPromptQueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isOnline: false,
+        isStreaming: true,
+        startStreaming: mockStreamingStore.startStreaming,
+        invalidatePendingPrompts: expect.any(Function),
+      })
+    );
+  });
+
+  it('enables private chat with non-persistent runtime adapters', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    expect(result.current.isPrivateChat).toBe(false);
+
+    await act(() => {
+      result.current.handleTogglePrivateChat();
+    });
+
+    expect(mockStreamingStore.reset).toHaveBeenCalledTimes(1);
+    expect(mockResetStreamingState).toHaveBeenCalledTimes(1);
+    expect(result.current.isPrivateChat).toBe(true);
+    expect(capturedMessageSenderOptions).toEqual(
+      expect.objectContaining({
+        privateChat: true,
+        persistMessages: false,
+      })
+    );
+    expect(mockUseConversationState).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        isPrivateMode: true,
+      })
+    );
+    expect(mockUsePendingPromptQueue).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        isOnline: false,
+      })
+    );
+  });
+
+  it('clears the private conversation before disabling private chat', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(() => {
+      result.current.handleTogglePrivateChat();
+    });
+    expect(result.current.isPrivateChat).toBe(true);
+
+    await act(async () => {
+      result.current.handleExitPrivateChat();
+      await Promise.resolve();
+    });
+
+    expect(mockConversationState.handleNewChat).toHaveBeenCalledTimes(1);
+    expect(result.current.isPrivateChat).toBe(false);
+    expect(capturedMessageSenderOptions).toEqual(
+      expect.objectContaining({
+        privateChat: false,
+        persistMessages: true,
+      })
+    );
+  });
+
+  it('returns key coordinator values from dependencies', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.isOnline).toBe(true);
+    expect(result.current.computerUseEnabled).toBe(true);
+    expect(result.current.handleSendMessage).toEqual(expect.any(Function));
+    expect(result.current.handleClearCache).toBe(mockHandleClearCache);
+  });
+
+  it('forwards sends to message sender when authenticated', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(async () => {
+      await result.current.handleSendMessage('hello', { modelId: 'zai/glm-5.2' });
+    });
+
+    expect(mockHandleSendMessage).toHaveBeenCalledWith('hello', {
+      modelId: 'zai/glm-5.2',
+    });
+    expect(mockRequestAiDataSharingConsent).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalledWith('/login');
+  });
+
+  it('requires AI data-sharing consent before invoking message sender', async () => {
+    mockRequestAiDataSharingConsent.mockResolvedValueOnce(false);
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(async () => {
+      await result.current.handleSendMessage('hello');
+    });
+
+    expect(mockHandleSendMessage).not.toHaveBeenCalled();
+    expect(mockStreamingStore.setErrorMessage).toHaveBeenCalledWith(
+      'privacy.aiDataSharingRequired'
+    );
+    expect(mockPush).not.toHaveBeenCalledWith('/login');
+  });
+
+  it('saves unauthenticated sends locally without invoking account-based AI execution', async () => {
+    mockIsAuthenticated = false;
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(async () => {
+      await result.current.handleSendMessage('hello');
+    });
+
+    expect(mockRequestAiDataSharingConsent).not.toHaveBeenCalled();
+    expect(mockHandleSendMessage).not.toHaveBeenCalled();
+    expect(mockConversationState.ensureActiveConversation).toHaveBeenCalledTimes(1);
+    expect(mockConversationState.addUserMessage).toHaveBeenCalledWith('hello');
+    expect(mockConversationState.setMessages).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockUpsertMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: 'conv-1',
+        role: 'assistant',
+        content: 'auth.signInRequiredForAi',
+        isStreaming: false,
+      })
+    );
+    expect(mockStreamingStore.clearErrorMessage).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalledWith('/login');
+  });
+
+  it('ensures a real conversation before starting realtime voice', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(async () => {
+      await result.current.handleRealtimeVoiceStart();
+    });
+
+    expect(mockConversationState.ensureActiveConversation).toHaveBeenCalledTimes(1);
+    expect(mockStreamingStore.clearErrorMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('mirrors and persists finalized realtime voice transcripts', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+    const transcriptMessages = [
+      {
+        id: 'active',
+        isEphemeral: true,
+        isStreaming: true,
+        role: 'user' as const,
+        text: 'Listening...',
+      },
+      {
+        id: 'user-1',
+        isEphemeral: false,
+        isStreaming: false,
+        role: 'user' as const,
+        text: 'Start a new voice task',
+      },
+      {
+        id: 'assistant-1',
+        isStreaming: false,
+        role: 'assistant' as const,
+        text: 'Voice task started.',
+      },
+    ];
+
+    await act(async () => {
+      result.current.handleRealtimeTranscriptMessagesChange(transcriptMessages);
+    });
+
+    await waitFor(() => {
+      expect(mockUpsertMessage).toHaveBeenCalledTimes(2);
+    });
+
+    expect(mockConversationState.setMessages).toHaveBeenCalledWith(expect.any(Function));
+    const updateMessages = mockConversationState.setMessages.mock.calls[0][0] as (
+      previous: Array<{ id: string; role: string; content: string; isStreaming?: boolean }>
+    ) => Array<{ id: string; role: string; content: string; isStreaming?: boolean }>;
+    expect(updateMessages([{ id: 'existing', role: 'user', content: 'typed' }])).toEqual([
+      { id: 'existing', role: 'user', content: 'typed' },
+      expect.objectContaining({
+        id: 'realtime-voice-user-1',
+        role: 'user',
+        content: 'Start a new voice task',
+        isStreaming: false,
+      }),
+      expect.objectContaining({
+        id: 'realtime-voice-assistant-1',
+        role: 'assistant',
+        content: 'Voice task started.',
+        isStreaming: false,
+      }),
+    ]);
+
+    expect(mockEnsureConversation).toHaveBeenCalledWith('conv-1', 'Start a new voice task');
+    expect(mockUpsertMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: 'conv-1',
+        messageId: 'realtime-voice-user-1',
+        role: 'user',
+        content: 'Start a new voice task',
+        isStreaming: false,
+      })
+    );
+    expect(mockUpsertMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: 'conv-1',
+        messageId: 'realtime-voice-assistant-1',
+        role: 'assistant',
+        content: 'Voice task started.',
+        isStreaming: false,
+      })
+    );
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.conversations });
+
+    await act(async () => {
+      result.current.handleRealtimeTranscriptMessagesChange(transcriptMessages);
+    });
+
+    expect(mockEnsureConversation).toHaveBeenCalledTimes(1);
+    expect(mockUpsertMessage).toHaveBeenCalledTimes(2);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('mirrors realtime transcripts in private chat without persisting them', async () => {
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(() => {
+      result.current.handleTogglePrivateChat();
+    });
+
+    jest.clearAllMocks();
+
+    await act(async () => {
+      result.current.handleRealtimeTranscriptMessagesChange([
+        {
+          id: 'user-private',
+          isEphemeral: false,
+          isStreaming: false,
+          role: 'user' as const,
+          text: 'Do this privately',
+        },
+      ]);
+    });
+
+    expect(mockConversationState.setMessages).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockEnsureConversation).not.toHaveBeenCalled();
+    expect(mockUpsertMessage).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalledWith({ queryKey: queryKeys.conversations });
+  });
+
+  it('serializes transcript revisions so newer text cannot be overwritten by an older write', async () => {
+    let resolveFirstWrite: (() => void) | undefined;
+    mockUpsertMessage.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveFirstWrite = resolve;
+        })
+    );
+    const { result } = await renderHook(() => useChatCoordinator());
+
+    await act(async () => {
+      result.current.handleRealtimeTranscriptMessagesChange([
+        {
+          id: 'assistant-revision',
+          isStreaming: false,
+          role: 'assistant' as const,
+          text: 'Partial answer',
+        },
+      ]);
+    });
+    await waitFor(() => expect(mockUpsertMessage).toHaveBeenCalledTimes(1));
+
+    await act(async () => {
+      result.current.handleRealtimeTranscriptMessagesChange([
+        {
+          id: 'assistant-revision',
+          isStreaming: false,
+          role: 'assistant' as const,
+          text: 'Complete answer',
+        },
+      ]);
+    });
+    expect(mockUpsertMessage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveFirstWrite?.();
+    });
+    await waitFor(() => expect(mockUpsertMessage).toHaveBeenCalledTimes(2));
+
+    expect(mockUpsertMessage.mock.calls.map(([message]) => message.content)).toEqual([
+      'Partial answer',
+      'Complete answer',
+    ]);
+  });
+});

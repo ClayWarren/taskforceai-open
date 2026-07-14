@@ -1,0 +1,65 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "TaskForceAI",
+  "theme": "mint",
+  "description": "TaskForceAI: The Multi-Agent AI Orchestration Platform.",
+  "logo": {
+    "light": "/images/icon.png",
+    "dark": "/images/icon.png",
+    "href": "https://www.taskforceai.chat"
+  },
+  "favicon": "/images/favicon-32x32.png",
+  "colors": {
+    "primary": "#111827",
+    "light": "#374151",
+    "dark": "#0a0a0a"
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@taskforceai.chat"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "https://console.taskforceai.chat"
+    }
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": ["docs/index", "docs/ai"]
+      },
+      {
+        "group": "SDKs",
+        "pages": ["docs/typescript-sdk", "docs/python-sdk", "docs/rust-sdk", "docs/go-sdk"]
+      },
+      {
+        "group": "Tools",
+        "pages": ["docs/cli", "docs/desktop", "docs/desktop/homebrew"]
+      },
+      {
+        "group": "API Reference",
+        "pages": ["docs/api"]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/TaskForceAI/taskforceai",
+      "x": "https://x.com/taskforceai_us"
+    }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude"]
+  },
+  "seo": {
+    "indexing": "navigable"
+  }
+}

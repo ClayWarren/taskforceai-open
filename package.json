@@ -1,0 +1,40 @@
+{
+  "name": "taskforceai-open",
+  "version": "1.0.0",
+  "description": "Open product core, clients, and developer platform for TaskForceAI.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "packages/*",
+    "packages/core/ts/*",
+    "packages/adapters/ts/*",
+    "packages/infrastructure/ts/*",
+    "packages/ui/ts/*",
+    "packages/contracts/*",
+    "packages/sdk/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:web": "cd apps/web && bun run build",
+    "build:marketing": "cd apps/marketing && bun run build",
+    "build:console": "cd apps/console && bun run build",
+    "build:status": "cd apps/status && bun run build",
+    "build:docs": "cd apps/docs && bun run build",
+    "build:sdk-typescript": "cd packages/sdk-typescript && bun run build",
+    "generate:sqlc": "scripts/dev/generate-sqlc.sh",
+    "security:check": "./scripts/security/security-check-local.sh",
+    "test:go-services": "bun run generate:sqlc && for service in auth billing core developer engine sync; do (cd \"apps/$service\" && go test ./...) || exit 1; done",
+    "test:packages": "bun tests/run-packages-bun.ts",
+    "typecheck:routes": "bun scripts/dev/generate-route-trees.ts"
+  },
+  "catalog": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "4.4.3",
+    "@sentry/react": "^10.63.0",
+    "@tanstack/react-router": "1.170.18",
+    "@tanstack/react-start": "1.168.28"
+  }
+}

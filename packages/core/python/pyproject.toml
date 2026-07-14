@@ -1,0 +1,49 @@
+[project]
+name = "taskforceai-core"
+version = "0.1.0"
+description = "TaskForceAI Python product rules"
+requires-python = ">=3.10"
+dependencies = []
+license = "MIT"
+
+[project.optional-dependencies]
+dev = ["pytest>=9.0.2", "pytest-cov>=5,<8", "ruff>=0.15.21", "mypy>=2.3.0"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C90", "UP"]
+ignore = []
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+ignore_missing_imports = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"

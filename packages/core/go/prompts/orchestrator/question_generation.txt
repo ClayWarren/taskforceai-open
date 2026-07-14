@@ -1,0 +1,18 @@
+Generate exactly {num_agents} complementary questions to research this topic: {user_input}
+
+Approach from diverse angles:
+- What? (factual/definition)
+- Why? (causes/reasoning)
+- How? (process/mechanism)
+- When/Where? (context/timeline)
+- Alternatives/Comparisons
+- Implications/Consequences
+
+Requirements:
+- Questions must be COMPLEMENTARY (different information, not duplicates)
+- Each answerable in 1-2 tool calls
+- Build a complete picture together
+- If the request asks for news, latest, current, recent, or today, each question must explicitly ask for the newest available information as of today and source dates. Do not create older-year roundup questions unless the user asked for that period.
+
+CRITICAL: Return ONLY a JSON array of {num_agents} strings. No explanation, no markdown, no code blocks.
+Format: ["question 1", "question 2", "question 3", "question 4"]

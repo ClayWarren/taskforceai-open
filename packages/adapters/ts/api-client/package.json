@@ -1,0 +1,80 @@
+{
+  "name": "@taskforceai/api-client",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./attachments": {
+      "types": "./src/attachments.ts",
+      "default": "./src/attachments.ts"
+    },
+    "./browserClient": {
+      "types": "./src/browserClient.ts",
+      "default": "./src/browserClient.ts"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./src/client.ts"
+    },
+    "./client/agents": "./src/client/agents.ts",
+    "./request": {
+      "types": "./src/request.ts",
+      "default": "./src/request.ts"
+    },
+    "./api/account": "./src/api/account.ts",
+    "./api/artifact-response": "./src/api/artifact-response.ts",
+    "./api/artifacts": "./src/api/artifacts.ts",
+    "./api/auth": "./src/api/auth.ts",
+    "./api/billing": "./src/api/billing.ts",
+    "./api/error-utils": "./src/api/error-utils.ts",
+    "./api/gdpr": "./src/api/gdpr.ts",
+    "./api/memories": "./src/api/memories.ts",
+    "./api/response": "./src/api/response.ts",
+    "./api/result-helpers": "./src/api/result-helpers.ts",
+    "./api/retry-policy": "./src/api/retry-policy.ts",
+    "./api/subscriptions": "./src/api/subscriptions.ts",
+    "./api/support": "./src/api/support.ts",
+    "./api/tasks": "./src/api/tasks.ts",
+    "./auth": {
+      "types": "./src/auth/index.ts",
+      "default": "./src/auth/index.ts"
+    },
+    "./auth/auth-client": "./src/auth/auth-client.ts",
+    "./auth/auth-service": "./src/auth/auth-service.ts",
+    "./auth/auth-storage": "./src/auth/auth-storage.ts",
+    "./auth/auth-url": "./src/auth/auth-url.ts",
+    "./auth/client": "./src/auth/client.ts",
+    "./auth/csrf": "./src/auth/csrf.ts",
+    "./auth/logger": "./src/auth/logger.ts",
+    "./auth/session-expiry": "./src/auth/session-expiry.ts",
+    "./auth/storage": "./src/auth/storage.ts",
+    "./auth/types": "./src/auth/types.ts",
+    "./auth/utils": "./src/auth/utils.ts",
+    "./services/client-metadata": "./src/services/client-metadata.ts",
+    "./services/issue-report": "./src/services/issue-report.ts",
+    "./services/profile-service": "./src/services/profile-service.ts",
+    "./services/upgrade-flow": "./src/services/upgrade-flow.ts",
+    "./utils/abortable-delay": "./src/utils/abortable-delay.ts",
+    "./utils/json": "./src/utils/json.ts",
+    "./utils/models": "./src/utils/models.ts",
+    "./utils/result": "./src/utils/result.ts",
+    "./utils/ssr-guards": "./src/utils/ssr-guards.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "bench:runtime": "bun benchmarks/runtime-performance.ts"
+  },
+  "dependencies": {
+    "@taskforceai/browser-runtime": "workspace:*",
+    "@taskforceai/client-core": "workspace:*",
+    "@taskforceai/contracts": "workspace:*",
+    "zod": "catalog:"
+  }
+}

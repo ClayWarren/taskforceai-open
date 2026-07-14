@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Canonical conversation metadata shared across every client.
+model Conversation {
+  id                 Int       @id @default(autoincrement())
+  conversationId     String    @unique @map("conversation_id")
+  userId             String    @default("local") @map("user_id")
+  title              String
+  status             String    @default("pending")
+  createdAt          BigInt    @map("created_at")
+  updatedAt          BigInt    @map("updated_at")
+  lastMessagePreview String?   @map("last_message_preview")
+  projectId          Int?      @map("project_id")
+  syncVersion        Int       @default(0) @map("sync_version")
+  lastSyncedAt       BigInt    @default(0) @map("last_synced_at")
+  deviceId           String?   @map("device_id")
+  isDeleted          Boolean   @default(false) @map("is_deleted")
+  isArchived         Boolean   @default(false) @map("is_archived")
+  error              String?
+
+  messages      Message[]
+  promptQueue   PromptQueue[]
+  pendingPrompts PendingPrompt[]
+
+  @@map("conversations")
+  @@index([userId])
+  @@index([updatedAt])
+  @@index([syncVersion])
+  @@index([lastSyncedAt])
+}
+
+/// Durable messages mirrored between cloud and local stores.
+model Message {
+  id             Int          @id @default(autoincrement())
+  messageId      String       @unique @map("message_id")
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [conversationId], onDelete: Cascade)
+  role           String
+  content        String
+  isStreaming    Boolean      @default(false) @map("is_streaming")
+  isAgentStatus  Boolean      @default(false) @map("is_agent_status")
+  elapsedSeconds Float?       @map("elapsed_seconds")
+  createdAt      BigInt       @map("created_at")
+  updatedAt      BigInt       @map("updated_at")
+  error          String?
+  sources        Json?        @map("sources")
+  toolEvents     Json?        @map("tool_events")
+  agentStatuses  Json?        @map("agent_statuses")
+  metadata       Json?        @map("metadata")
+  syncVersion    Int          @default(0) @map("sync_version")
+  lastSyncedAt   BigInt       @default(0) @map("last_synced_at")
+  deviceId       String?      @map("device_id")
+  isDeleted      Boolean      @default(false) @map("is_deleted")
+
+  @@map("messages")
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([syncVersion])
+}
+
+/// Local-first change journal used for sync conflict resolution.
+model PendingChange {
+  id         Int    @id @default(autoincrement())
+  changeType String @map("type")
+  entityId   String @map("entity_id")
+  operation  String
+  data       Json
+  createdAt  BigInt @map("created_at")
+
+  @@map("pending_changes")
+  @@index([createdAt])
+}
+
+/// Device metadata / sync cursors.
+model Metadata {
+  key   String @id
+  value String
+
+  @@map("metadata")
+}
+
+/// CLI retry queue for prompts that failed to send to the cloud.
+model PendingPrompt {
+  id             String       @id
+  prompt         String
+  conversationId String?      @map("conversation_id")
+  conversation   Conversation? @relation(fields: [conversationId], references: [conversationId], onDelete: SetNull)
+  createdAt      BigInt       @map("created_at")
+  retryCount     Int          @default(0) @map("retry_count")
+  lastError      String?      @map("last_error")
+  modelId        String?      @map("model_id")
+
+  @@map("pending_prompts")
+  @@index([createdAt])
+}
+
+/// Mobile prompt queue for offline drafting.
+model PromptQueue {
+  id             Int          @id @default(autoincrement())
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [conversationId], onDelete: Cascade)
+  prompt         String
+  status         String
+  createdAt      BigInt       @map("created_at")
+  updatedAt      BigInt       @map("updated_at")
+  modelId        String?      @map("model_id")
+  attachmentIds  String?      @map("attachment_ids")
+
+  @@map("prompt_queue")
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Mobile authentication session cache.
+model AuthSession {
+  id           Int      @id @default(autoincrement())
+  accessToken  String   @map("access_token")
+  expiresAt    BigInt   @map("expires_at")
+  userId       String   @map("user_id")
+  email        String
+  plan         String   @default("free")
+  createdAt    BigInt   @map("created_at")
+
+  @@map("auth_sessions")
+}
+
+/// Mobile user profile cache.
+model UserProfile {
+  id                   Int
+  email                String   @id
+  fullName             String?  @map("full_name")
+  avatarUrl            String?  @map("avatar_url")
+  plan                 String   @default("free")
+  subscriptionStatus   String?  @map("subscription_status")
+  currentPeriodEnd     String?  @map("current_period_end")
+  messageCount         Int      @default(0) @map("message_count")
+  lastMessageTimestamp String?  @map("last_message_timestamp")
+  data                 String   // JSON string for extra fields
+  updatedAt            BigInt   @map("updated_at")
+
+  @@map("user_profiles")
+}

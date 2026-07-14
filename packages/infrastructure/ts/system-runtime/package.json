@@ -1,0 +1,25 @@
+{
+  "name": "@taskforceai/system-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./async": "./src/async.ts",
+    "./clock": "./src/clock.ts",
+    "./clone": "./src/clone.ts",
+    "./id": "./src/id.ts",
+    "./rng": "./src/rng.ts"
+  },
+  "dependencies": {
+    "@taskforceai/client-core": "workspace:*"
+  }
+}
