@@ -1,0 +1,16 @@
+generatorName: rust
+# Auth's device-flow TokenResponse intentionally emits both RFC snake_case
+# (access_token) and camelCase compat (accessToken) fields; without mapping,
+# the rust generator snake_cases both to the same identifier and the
+# generated crate fails to compile with duplicate fields.
+nameMappings:
+  accessToken: access_token_compat
+  expiresIn: expires_in_compat
+additionalProperties:
+  packageName: taskforceai_desktop_api
+  packageVersion: 0.1.0
+  supportAsync: true
+  library: reqwest
+  useSingleRequestParameter: true
+  useReqwest: true
+  preferUnsignedInt: false

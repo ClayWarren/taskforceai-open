@@ -1,0 +1,11 @@
+Summarize the following agent response so it can be handed to a synthesis step alongside other agents' work. Preserve:
+- The final answer or conclusion the agent reached
+- Concrete facts, numbers, file paths, code snippets, or citations it produced
+- Any caveats, uncertainties, or unresolved issues it flagged
+
+Drop:
+- Restated instructions or planning narration
+- Step-by-step tool-call narration that doesn't change the final answer
+- Filler and repetition
+
+Write the summary as plain prose or bullet points, whichever fits the content better. Do not add commentary about the summarization itself - output only the summarized content.

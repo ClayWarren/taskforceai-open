@@ -1,0 +1,26 @@
+{
+  "name": "@taskforceai/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "schema",
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./index": "./src/index.ts",
+    "./contracts": "./src/contracts.ts",
+    "./api/status": "./src/api/status.ts",
+    "./app-server": "./src/app-server-types.ts"
+  },
+  "scripts": {},
+  "dependencies": {
+    "zod": "catalog:"
+  }
+}

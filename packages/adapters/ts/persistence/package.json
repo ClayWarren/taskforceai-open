@@ -1,0 +1,29 @@
+{
+  "name": "@taskforceai/persistence",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./chat-normalizers": {
+      "types": "./src/chat-normalizers.ts",
+      "default": "./src/chat-normalizers.ts"
+    },
+    "./preferences/model-selection-storage": "./src/preferences/model-selection-storage.ts",
+    "./preferences/orchestration-storage": "./src/preferences/orchestration-storage.ts",
+    "./preferences/theme-storage": "./src/preferences/theme-storage.ts",
+    "./storage/cache-scope": "./src/storage/cache-scope.ts",
+    "./storage/value-utils": "./src/storage/value-utils.ts"
+  },
+  "dependencies": {
+    "@taskforceai/client-core": "workspace:*",
+    "@taskforceai/contracts": "workspace:*",
+    "zod": "catalog:"
+  }
+}

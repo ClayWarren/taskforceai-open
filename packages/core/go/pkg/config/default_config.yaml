@@ -1,0 +1,120 @@
+# LLM gateway settings (default: Vercel AI Gateway)
+# - Set AI_GATEWAY_API_KEY
+# - Optionally override base_url with VERCEL_AI_GATEWAY_URL if you need a self-hosted proxy
+gateway:
+  api_key: null # Set via AI_GATEWAY_API_KEY environment variable
+  base_url: 'https://ai-gateway.vercel.sh/v1'
+  # Override base_url with VERCEL_AI_GATEWAY_URL when using a specific gateway (e.g., https://api.vercel.ai/v1/gateway/my-slug/my-id)
+
+  # IMPORTANT: When selecting a model, ensure it has a high context window (200k+ tokens recommended)
+  # The orchestrator can generate large amounts of results from multiple agents that need to be
+  # processed together during synthesis. Low context window models may fail or truncate results.
+  model: 'xai/grok-4.5'
+
+  # Optional but recommended: set your own values so the gateway can attribute requests correctly.
+  default_headers:
+    HTTP-Referer: 'https://taskforceai.chat'
+    X-Title: 'TaskForceAI'
+
+models:
+  default: 'zai/glm-5.2'
+  options:
+    - id: 'zai/glm-5.2'
+      label: 'Sentinel'
+      description: 'Our flagship high-reasoning model, optimized for complex task planning.'
+      usageMultiple: 1.0
+      system_prompt_version: '1.0'
+    - id: 'xai/grok-4.5'
+      label: 'Grok 4.5'
+      description: 'xAI’s latest heavy reasoning tier with extended planning depth.'
+      usageMultiple: 1.5
+    - id: 'meta/muse-spark-1.1'
+      label: 'Muse Spark 1.1'
+      description: 'Meta’s agentic model for long-running tasks, tool use, and computer use.'
+      usageMultiple: 1
+    - id: 'google/gemini-3.1-pro-preview'
+      label: 'Gemini 3.1 Pro'
+      description: 'Full-strength Gemini tier geared toward difficult research prompts.'
+      usageMultiple: 2
+    - id: 'google/gemini-3.5-flash'
+      label: 'Gemini 3.5 Flash'
+      description: 'Fast Gemini tier for everyday prompts, analysis, and tool-heavy workflows.'
+      usageMultiple: 1.5
+    - id: 'google/gemini-3.1-flash-lite'
+      label: 'Gemini 3.1 Flash Lite'
+      description: 'Lightweight Gemini tier optimized for low-latency, lower-cost tasks.'
+      usageMultiple: 0.5
+    - id: 'google/gemini-2.5-flash-image'
+      label: 'Gemini Image'
+      description: 'Native image generation powered by Gemini 2.5 Flash.'
+      usageMultiple: 1
+    - id: 'xai/grok-imagine-video-1.5'
+      label: 'Grok Imagine Video'
+      description: 'AI Gateway image-to-video generation with synced audio powered by Grok Imagine Video 1.5.'
+      usageMultiple: 4
+    - id: 'openai/gpt-5.6-sol'
+      label: 'GPT 5.6 Sol'
+      description: 'OpenAI’s flagship GPT-5.6 model for the most demanding reasoning tasks.'
+      usageMultiple: 5
+    - id: 'openai/gpt-5.6-terra'
+      label: 'GPT 5.6 Terra'
+      description: 'Balanced GPT-5.6 tier for strong everyday reasoning at lower cost.'
+      usageMultiple: 2.5
+    - id: 'openai/gpt-5.6-luna'
+      label: 'GPT 5.6 Luna'
+      description: 'Fast, cost-efficient GPT-5.6 tier for responsive everyday work.'
+      usageMultiple: 1
+    - id: 'anthropic/claude-fable-5'
+      label: 'Claude Fable 5'
+      description: 'Anthropic’s balance of reasoning strength and latency for fallback coverage.'
+      usageMultiple: 9
+    - id: 'anthropic/claude-sonnet-5'
+      label: 'Claude Sonnet 5'
+      description: 'Anthropic Sonnet tier balanced for strong reasoning, coding, and responsiveness.'
+      usageMultiple: 2
+    - id: 'anthropic/claude-opus-4.8'
+      label: 'Claude Opus 4.8'
+      description: 'Anthropic Opus tier for deeper reasoning and high-stakes synthesis.'
+      usageMultiple: 4.5
+    - id: 'anthropic/claude-haiku-4.5'
+      label: 'Claude Haiku 4.5'
+      description: 'Anthropic Haiku tier optimized for fast, lightweight assistant work.'
+      usageMultiple: 1
+
+# Agent settings
+agent:
+  max_iterations: 5 # Tightened to keep per-prompt LLM calls within gateway budget
+  temperature: 0.0 # Sampling temperature for diversity (0.0 = deterministic, 1.0 = very random)
+
+# Orchestrator settings
+orchestrator:
+  parallel_agents: 4 # Number of agents to run in parallel
+  task_timeout: 300 # Timeout in seconds per agent
+  aggregation_strategy: 'consensus' # How to combine results
+  enable_local_file_tools: false # Enable local file read/write/edit/glob/grep tools for agents
+
+# Search tool settings
+search:
+  max_results: 5
+  user_agent: 'Mozilla/5.0 (compatible; TaskForceAI Agent)'
+  provider: 'brave'
+  brave:
+    api_key: null # Set via BRAVE_SEARCH_API_KEY environment variable
+    endpoint: 'https://api.search.brave.com/res/v1/web/search'
+
+# Web application settings
+web_app:
+  rate_limit:
+    requests_per_minute: 10
+    requests_per_hour: 100
+    max_concurrent_requests: 100
+
+# CORS settings
+cors:
+  allowed_origins:
+    - 'http://localhost'
+    - 'http://127.0.0.1'
+    - 'http://localhost:*'
+    - 'http://127.0.0.1:*'
+    - 'http://localhost:5173' # Vite dev server
+    - 'http://localhost:8000'

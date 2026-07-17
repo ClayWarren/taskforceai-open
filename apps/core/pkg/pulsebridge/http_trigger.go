@@ -1,0 +1,144 @@
+package pulsebridge
+
+import (
+	"bytes"
+	"context"
+	cryptorand "crypto/rand"
+	"encoding/json"
+	"fmt"
+	"io"
+	"math/big"
+	"net/http"
+	"sync"
+	"time"
+)
+
+var (
+	secureJitterInt           = cryptorand.Int
+	httpTriggerRequestTimeout = 30 * time.Second
+)
+
+type contextInteractionTrigger func(context.Context, string, string) error
+
+func newHTTPTrigger(url, token string) contextInteractionTrigger {
+	client := &http.Client{Timeout: 30 * time.Second}
+	const (
+		maxAttempts       = 3
+		baseBackoff       = 250 * time.Millisecond
+		maxBackoff        = 3 * time.Second
+		failureThreshold  = 3
+		circuitOpenWindow = 30 * time.Second
+	)
+
+	// Capture the parent context for cancellation (e.g., from the bridge).
+	var breakerMu sync.Mutex
+	consecutiveFailures := 0
+	circuitOpenUntil := time.Time{}
+
+	return func(parentCtx context.Context, agentID, reason string) error {
+		breakerMu.Lock()
+		if !circuitOpenUntil.IsZero() && time.Now().Before(circuitOpenUntil) {
+			remaining := time.Until(circuitOpenUntil).Round(time.Millisecond)
+			breakerMu.Unlock()
+			return fmt.Errorf("pulse trigger circuit open, retry after %s", remaining)
+		}
+		breakerMu.Unlock()
+
+		payload := map[string]any{
+			"agentId": agentID,
+			"reason":  reason,
+			"ts":      time.Now().UnixMilli(),
+		}
+		data, _ := json.Marshal(payload)
+
+		var finalErr error
+		retryableErr := false
+		for attempt := 1; attempt <= maxAttempts; attempt++ {
+			finalErr, retryableErr = executeHTTPTriggerRequest(parentCtx, client, url, token, data)
+
+			if finalErr == nil {
+				break
+			}
+			if !retryableErr || attempt == maxAttempts {
+				break
+			}
+
+			backoff := min(baseBackoff*time.Duration(1<<(attempt-1)), maxBackoff)
+			jitter := secureJitter(100 * time.Millisecond)
+			timer := time.NewTimer(backoff + jitter)
+			select {
+			case <-parentCtx.Done():
+				timer.Stop()
+				finalErr = parentCtx.Err()
+				retryableErr = false
+			case <-timer.C:
+			}
+			if !retryableErr {
+				break
+			}
+		}
+
+		breakerMu.Lock()
+		defer breakerMu.Unlock()
+		if finalErr == nil {
+			consecutiveFailures = 0
+			circuitOpenUntil = time.Time{}
+			return nil
+		}
+		if !retryableErr {
+			return finalErr
+		}
+		consecutiveFailures++
+		if consecutiveFailures >= failureThreshold {
+			circuitOpenUntil = time.Now().Add(circuitOpenWindow)
+			consecutiveFailures = 0
+		}
+		return finalErr
+	}
+}
+
+func executeHTTPTriggerRequest(parentCtx context.Context, client *http.Client, url, token string, data []byte) (error, bool) {
+	reqCtx, cancel := context.WithTimeout(parentCtx, httpTriggerRequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, url, bytes.NewReader(data))
+	if err != nil {
+		return err, false
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		// Caller cancellation should fail fast. The trigger's own request
+		// deadline is transient and should participate in retries/breaking.
+		return err, parentCtx.Err() == nil
+	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil, false
+	}
+	if resp.StatusCode < 500 && resp.StatusCode != http.StatusTooManyRequests {
+		// 4xx (except 429) are considered caller/data errors and are not retried.
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode), false
+	}
+	return fmt.Errorf("retryable status code: %d", resp.StatusCode), true
+}
+
+func secureJitter(max time.Duration) time.Duration {
+	if max <= 0 {
+		return 0
+	}
+	n, err := secureJitterInt(cryptorand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return 0
+	}
+	return time.Duration(n.Int64())
+}

@@ -1,0 +1,31 @@
+export const queryKeys = {
+  user: ['user'] as const,
+  conversations: ['conversations'] as const,
+  conversationsPage: (limit = 20) => ['conversations', limit] as const,
+  subscription: ['subscription'] as const,
+  billingBalance: ['billingBalance'] as const,
+  storage: ['storage'] as const,
+  products: ['products'] as const,
+  projects: () => ['projects'] as const,
+  artifacts: ['artifacts'] as const,
+  agents: ['agents'] as const,
+  artifactVersions: (artifactId: string) => ['artifacts', artifactId, 'versions'] as const,
+  finance: ['finance'] as const,
+  pendingPrompts: ['pendingPrompts'] as const,
+  desktopSessions: ['desktopSessions'] as const,
+  cloudTasks: ['cloudTasks'] as const,
+  desktopWork: ['desktopWork'] as const,
+  desktopThread: (threadId: string) => ['desktopWork', 'thread', threadId] as const,
+  desktopHosts: ['desktopWork', 'hosts'] as const,
+  desktopReview: (scope: string, workspace = '', threadId = '') =>
+    ['desktopWork', 'review', scope, workspace, threadId] as const,
+  desktopGitStatus: (workspace: string) => ['desktopWork', 'gitStatus', workspace] as const,
+  desktopGitBranches: (workspace: string) => ['desktopWork', 'gitBranches', workspace] as const,
+  desktopGitWorktrees: (workspace: string) => ['desktopWork', 'gitWorktrees', workspace] as const,
+  desktopGitHubRepositories: (query: string) => ['desktopWork', 'githubRepositories', query] as const,
+  desktopWorkspaceFiles: (workspace: string, query: string) =>
+    ['desktopWork', 'workspaceFiles', workspace, query] as const,
+  desktopWorkspaceFile: (workspace: string, path: string) =>
+    ['desktopWork', 'workspaceFile', workspace, path] as const,
+  modelSelector: ['modelSelectorOptions'] as const,
+} as const;

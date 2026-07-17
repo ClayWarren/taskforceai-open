@@ -1,0 +1,33 @@
+Apply a multi-file patch in a single call. Prefer this over Edit when a change spans several files, adds or deletes whole files, or renames a file alongside editing it — use Edit for a single targeted replacement in one file.
+
+Your patch language is a stripped-down, file-oriented diff format:
+
+*** Begin Patch
+[ one or more file sections ]
+*** End Patch
+
+Each file section starts with one of three headers:
+- `*** Add File: <path>` - create a new file. Every following line must start with `+` (the initial contents).
+- `*** Delete File: <path>` - remove an existing file. Nothing follows.
+- `*** Update File: <path>` - patch an existing file in place, optionally followed by `*** Move to: <newPath>` to rename it. Then one or more `@@` hunks, each a run of ` ` (context), `-` (removed), and `+` (added) lines. End a hunk early with `*** End of File` when the change is anchored to the end of the file.
+
+Example patch:
+
+```
+*** Begin Patch
+*** Add File: hello.txt
++Hello world
+*** Update File: src/app.py
+*** Move to: src/main.py
+@@
+-print("Hi")
++print("Hello, world!")
+*** Delete File: obsolete.txt
+*** End Patch
+```
+
+Usage notes:
+- Just like Edit, you must use the Read tool on a file before an Update operation targets it.
+- Include a header for every file section (Add/Delete/Update) — the patch is rejected without one.
+- Prefix every added line with `+`, even in a brand-new file.
+- Files are changed in the order they appear in the patch. There is no rollback: if a later file section fails, the earlier ones remain applied, and the error reports which files succeeded.

@@ -1,0 +1,39 @@
+[package]
+name = "taskforceai-tui"
+version = "0.11.23"
+edition = "2021"
+description = "TaskForceAI Rust terminal UI"
+authors = ["TaskForceAI"]
+license = "MIT"
+repository = "https://github.com/TaskForceAI"
+rust-version = "1.96.0"
+publish = false
+
+[dependencies]
+arboard = "3.6.1"
+base64 = "0.22"
+clap = {version = "4.6.1", features = ["derive"]}
+cpal = "0.16"
+crossterm = {version = "0.29.0", features = ["event-stream"]}
+flate2 = "1.0"
+futures-util = "0.3"
+ratatui = "0.30.2"
+reqwest = {version = "0.12", default-features = false, features = ["json", "rustls-tls"]}
+png = "0.18.1"
+semver = "1.0"
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
+sha2 = "0.10"
+syntect = {version = "5", default-features = false, features = ["default-themes", "dump-load", "parsing", "regex-onig"]}
+tar = "0.4"
+taskforceai-app-client = {path = "../../packages/adapters/rust/app-client"}
+taskforceai-app-protocol = {path = "../../packages/contracts/rust"}
+taskforceai-core = {path = "../../packages/core/rust"}
+tempfile = "3.23"
+thiserror = "1.0"
+tokio = {version = "1.0", features = ["macros", "process", "rt-multi-thread", "signal", "sync", "time"]}
+tokio-tungstenite = {version = "0.28", default-features = false, features = ["connect", "rustls-tls-webpki-roots"]}
+tracing = "0.1"
+tracing-subscriber = {version = "0.3", features = ["env-filter", "fmt"]}
+two-face = {version = "0.5", default-features = false, features = ["syntect-onig"]}
+zip = {version = "2.2", default-features = false, features = ["deflate"]}

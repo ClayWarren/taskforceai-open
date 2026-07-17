@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["bun-types", "bun-types/test", "@testing-library/jest-dom", "vite/client"],
+    "paths": {
+      "@/*": ["./app/*"],
+      "#tests/*": ["../../tests/*"],
+      "@taskforceai/client-core": ["../../packages/core/ts/client-core/src/index.ts"],
+      "@taskforceai/client-core/*": ["../../packages/core/ts/client-core/src/*"],
+      "@taskforceai/client-core/preferences/theme-storage": [
+        "../../packages/core/ts/client-core/src/preferences/theme-storage.ts"
+      ],
+      "@taskforceai/browser-runtime": ["../../packages/adapters/ts/browser-runtime/src/index.ts"],
+      "@taskforceai/browser-runtime/*": ["../../packages/adapters/ts/browser-runtime/src/*"],
+      "@taskforceai/config": ["../../packages/infrastructure/ts/config/src/index.ts"],
+      "@taskforceai/config/*": ["../../packages/infrastructure/ts/config/src/*"],
+      "@taskforceai/react-core": ["../../packages/ui/ts/react-core/src/index.ts"]
+    },
+    "plugins": []
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "vite-env.d.ts", "../../types/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

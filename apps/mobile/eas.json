@@ -1,0 +1,63 @@
+{
+  "cli": {
+    "version": ">= 12.6.0",
+    "appVersionSource": "local"
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6754827533",
+        "appleTeamId": "F2RSXQY376"
+      }
+    }
+  },
+  "build": {
+    "preview": {
+      "channel": "preview",
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.taskforceai.chat",
+        "EXPO_PUBLIC_SYNC_URL": "https://sync.taskforceai.chat",
+        "EXPO_PUBLIC_FORCE_PROD_API": "true",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "40158904703-vcvod9am4pt2resef8io6b3a1rdnsh1u.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "40158904703-66q6ver6ah1lo9butgbkbliu2ktt5ed3.apps.googleusercontent.com",
+        "REVENUECAT_ANDROID_API_KEY": "goog_gqkZcdSFSgscudTFvtAMIhkaGvf",
+        "REVENUECAT_IOS_API_KEY": "appl_EouUCPMGDdKGPLvsMVOhZRvyCMF",
+        "APP_STORE_PRO_PRODUCT_ID": "com.taskforceai.pro",
+        "APP_STORE_SUPER_PRODUCT_ID": "com.taskforceai.super",
+        "PLAY_STORE_PRO_PRODUCT_ID": "pro_plan",
+        "PLAY_STORE_SUPER_PRODUCT_ID": "super_plan"
+      }
+    },
+    "production": {
+      "channel": "production",
+      "distribution": "store",
+      "cache": {
+        "key": "ios-prod-v1"
+      },
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://api.taskforceai.chat",
+        "EXPO_PUBLIC_SYNC_URL": "https://sync.taskforceai.chat",
+        "EXPO_PUBLIC_FORCE_PROD_API": "true",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "40158904703-vcvod9am4pt2resef8io6b3a1rdnsh1u.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "40158904703-66q6ver6ah1lo9butgbkbliu2ktt5ed3.apps.googleusercontent.com",
+        "REVENUECAT_ANDROID_API_KEY": "goog_gqkZcdSFSgscudTFvtAMIhkaGvf",
+        "REVENUECAT_IOS_API_KEY": "appl_EouUCPMGDdKGPLvsMVOhZRvyCMF",
+        "APP_STORE_PRO_PRODUCT_ID": "com.taskforceai.pro",
+        "APP_STORE_SUPER_PRODUCT_ID": "com.taskforceai.super",
+        "PLAY_STORE_PRO_PRODUCT_ID": "pro_plan",
+        "PLAY_STORE_SUPER_PRODUCT_ID": "super_plan",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://abc63fb0062dd7349448cb53002ba028@o4510169038258176.ingest.us.sentry.io/4510179449307136",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
+    }
+  }
+}

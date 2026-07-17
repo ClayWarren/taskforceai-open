@@ -1,0 +1,16 @@
+import { createFileRoute } from '@tanstack/react-router';
+
+import { FinancePage } from '../components/finance/FinancePage';
+import { StandaloneRouteShell } from '../app-shell/StandaloneRouteShell';
+
+export const Route = createFileRoute('/finance')({
+  component: FinanceRoute,
+});
+
+export function FinanceRoute() {
+  return (
+    <StandaloneRouteShell>
+      <FinancePage />
+    </StandaloneRouteShell>
+  );
+}
